@@ -122,10 +122,13 @@ export default function Cards() {
             const limite = c.limite || 0;
             const disponivel = limite - gasto;
 
-            const porcentagem =
-              c.tipo === "credito" && limite > 0
-                ? Math.min((gasto / limite) * 100, 100)
-                : 0;
+            const percent = limite > 0 ? (gasto / limite) * 100 : 0;
+
+            const getBarColor = () => {
+              if (percent > 80) return "bg-red-400";
+              if (percent > 50) return "bg-yellow-400";
+              return "bg-emerald-400";
+            };
 
             return (
               <motion.div
@@ -218,14 +221,11 @@ export default function Cards() {
                       Disponível: {formatCurrency(disponivel)}
                     </p>
 
-                    {c.tipo === "credito" && (
-                      <div className="w-full bg-white/20 h-1.5 rounded mt-2 overflow-hidden">
+                    {limite > 0 && (
+                      <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden mt-3">
                         <div
-                          className="h-1.5 rounded"
-                          style={{
-                            width: `${porcentagem}%`,
-                            backgroundColor: cor,
-                          }}
+                          className={`h-1.5 rounded-full ${getBarColor()}`}
+                          style={{ width: `${percent}%` }}
                         />
                       </div>
                     )}
@@ -254,17 +254,51 @@ export default function Cards() {
               className="w-[600px] max-h-[80vh] rounded-2xl p-6 overflow-y-auto"
               style={{
                 background: `linear-gradient(135deg, ${
-                  coresBanco[selected.banco?.toLowerCase()] || "#111827"
+                  coresBanco[normalizeBankName(selected.banco)] || "#111827"
                 }, #0b0f1a)`,
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* TÍTULO */}
               <h2 className="text-white text-xl font-semibold">
                 {selected.nome}
               </h2>
 
-              {/* transações */}
-              <div className="mt-4 flex flex-col gap-3">
+              {/* RESUMO DO CARTÃO */}
+              {(() => {
+                const gastoSelecionado = getGasto(selected.id);
+                const limiteSelecionado = Number(selected.limite || 0);
+                const disponivelSelecionado =
+                  limiteSelecionado - gastoSelecionado;
+
+                return (
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div className="bg-white/10 p-3 rounded-lg">
+                      <p className="text-xs text-gray-300">Limite</p>
+                      <p className="text-white font-semibold">
+                        {formatCurrency(limiteSelecionado)}
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 p-3 rounded-lg">
+                      <p className="text-xs text-gray-300">Utilizado</p>
+                      <p className="text-red-400 font-semibold">
+                        {formatCurrency(gastoSelecionado)}
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 p-3 rounded-lg">
+                      <p className="text-xs text-gray-300">Disponível</p>
+                      <p className="text-emerald-400 font-semibold">
+                        {formatCurrency(disponivelSelecionado)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* TRANSAÇÕES */}
+              <div className="mt-5 flex flex-col gap-3">
                 {getTransacoes(selected.id).map((t) => (
                   <div
                     key={t.id}

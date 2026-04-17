@@ -246,7 +246,7 @@ export default function BudgetAnnual() {
             <div>
               <h2 className="text-lg font-medium mb-4">Lançamentos</h2>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 mb-5">
                 {items.length === 0 ? (
                   <p className="text-gray-400">Nenhum lançamento ainda</p>
                 ) : (
@@ -263,6 +263,17 @@ export default function BudgetAnnual() {
                           <p className="text-sm text-gray-400">
                             {item.categoria || "Sem categoria"}
                           </p>
+
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {item.meses?.map((m) => (
+                              <span
+                                key={m}
+                                className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300"
+                              >
+                                {m.toUpperCase()}
+                              </span>
+                            ))}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -274,6 +285,9 @@ export default function BudgetAnnual() {
                             }`}
                           >
                             {formatCurrency(valor)}
+                            <span className="text-xs text-gray-400 ml-1">
+                              /mês
+                            </span>
                           </p>
 
                           <button

@@ -144,7 +144,7 @@ export default function Transactions() {
               <select
                 value={filtroCartao}
                 onChange={(e) => setFiltroCartao(e.target.value)}
-                className="bg-white/5 border border-white/10 p-2 rounded-lg"
+                className="bg-[#111827] border border-white/10 p-2 rounded-lg cursor-pointer"
               >
                 <option value="">Todos cartões</option>
 
