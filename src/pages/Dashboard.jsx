@@ -364,8 +364,22 @@ export default function Dashboard() {
                     };
 
                     const total = getCardTotal(c.id);
-                    const percent = c.limite ? (total / c.limite) * 100 : 0;
-                    const disponivel = c.limite ? c.limite - total : 0;
+
+                    let limite = Number(c.limite || 0);
+                    let saldo = Number(c.saldoInicial || 0);
+
+                    let disponivel = 0;
+                    let percent = 0;
+
+                    if (c.tipo === "credito" || c.tipo === "multiplo") {
+                      disponivel = limite - total;
+                      percent = limite > 0 ? (total / limite) * 100 : 0;
+                    }
+
+                    if (c.tipo === "vale") {
+                      disponivel = saldo - total;
+                      percent = saldo > 0 ? (total / saldo) * 100 : 0;
+                    }
 
                     const getBarColor = () => {
                       if (percent > 80) return "bg-red-400";
@@ -399,10 +413,41 @@ export default function Dashboard() {
                             {formatCurrency(total)}
                           </p>
 
-                          {c.limite && (
+                          {/* CRÉDITO / MÚLTIPLO */}
+                          {(c.tipo === "credito" || c.tipo === "multiplo") &&
+                            limite > 0 && (
+                              <>
+                                <div className="flex justify-between text-xs opacity-80">
+                                  <span>Uso</span>
+                                  <span>{Math.round(percent)}%</span>
+                                </div>
+
+                                <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-1.5 rounded-full ${getBarColor()}`}
+                                    style={{ width: `${percent}%` }}
+                                  />
+                                </div>
+
+                                <div className="flex justify-between text-xs opacity-80">
+                                  <span>
+                                    {formatCurrency(total)} /{" "}
+                                    {formatCurrency(limite)}
+                                  </span>
+                                  <span>
+                                    Disp: {formatCurrency(disponivel)}
+                                  </span>
+                                </div>
+                              </>
+                            )}
+
+                          {/* VALE */}
+                          {c.tipo === "vale" && (
                             <>
                               <div className="flex justify-between text-xs opacity-80">
-                                <span>Uso</span>
+                                <span>
+                                  {c.tipo === "vale" ? "Consumo" : "Uso"}
+                                </span>
                                 <span>{Math.round(percent)}%</span>
                               </div>
 
@@ -416,9 +461,11 @@ export default function Dashboard() {
                               <div className="flex justify-between text-xs opacity-80">
                                 <span>
                                   {formatCurrency(total)} /{" "}
-                                  {formatCurrency(c.limite)}
+                                  {formatCurrency(saldo)}
                                 </span>
-                                <span>Disp: {formatCurrency(disponivel)}</span>
+                                <span>
+                                  Restante: {formatCurrency(disponivel)}
+                                </span>
                               </div>
                             </>
                           )}

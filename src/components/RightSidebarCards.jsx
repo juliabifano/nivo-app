@@ -20,14 +20,23 @@ export default function RightSidebarCards({
 
   useEffect(() => {
     if (editandoCartao) {
-      setForm(editandoCartao);
+      setForm({
+        nome: "",
+        banco: "",
+        limite: "",
+        saldoInicial: "",
+        vencimento: "",
+        tipo: "credito",
+        diaReset: "",
+        ...editandoCartao,
+      });
     }
   }, [editandoCartao]);
 
   const handleAdd = () => {
     if (!form.nome) return;
 
-    if (form.tipo === "vale" && !form.saldo) return;
+    if (form.tipo === "vale" && !form.saldoInicial) return;
     if (form.tipo !== "vale" && !form.limite) return;
 
     const numeroLimpo = form.numeroCartao?.replace(/\s/g, "");
@@ -44,7 +53,8 @@ export default function RightSidebarCards({
             ? {
                 ...form,
                 limite: form.tipo === "vale" ? undefined : Number(form.limite),
-                saldo: form.tipo === "vale" ? Number(form.saldo) : undefined,
+                saldoInicial:
+                  form.tipo === "vale" ? Number(form.saldoInicial) : undefined,
                 vencimento: Number(form.vencimento),
               }
             : c,
@@ -56,8 +66,8 @@ export default function RightSidebarCards({
       const novo = {
         ...form,
         id: crypto.randomUUID(),
-        limite: Number(form.limite),
-        saldoInicial: Number(form.saldoInicial),
+        limite: Number(form.limite || 0),
+        saldoInicial: Number(form.saldoInicial || 0),
         diaReset: Number(form.diaReset),
         numeroCartao: form.numeroCartao?.replace(/\s/g, ""),
         tipo: form.tipo || "credito",
@@ -70,7 +80,10 @@ export default function RightSidebarCards({
       nome: "",
       banco: "",
       limite: "",
+      saldoInicial: "",
       vencimento: "",
+      tipo: "credito",
+      diaReset: "",
     });
   };
 
@@ -164,29 +177,23 @@ export default function RightSidebarCards({
       </select>
 
       {/* LIMITE */}
-      <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
-        type="number"
-        placeholder={form.tipo === "vale" ? "Saldo" : "Limite"}
-        value={form.tipo === "vale" ? form.saldo || "" : form.limite}
-        onChange={(e) =>
-          setForm({
-            ...form,
-            [form.tipo === "vale" ? "saldo" : "limite"]: e.target.value,
-          })
-        }
-      />
-
-      {form.tipo === "vale" && (
+      {form.tipo === "vale" ? (
         <input
           className="w-full p-2 bg-[#111827] rounded-lg"
           type="number"
-          placeholder="Dia do reset (ex: 5)"
-          value={form.diaReset}
-          onChange={(e) => setForm({ ...form, diaReset: e.target.value })}
+          placeholder="Saldo inicial"
+          value={form.saldoInicial || ""}
+          onChange={(e) => setForm({ ...form, saldoInicial: e.target.value })}
+        />
+      ) : (
+        <input
+          className="w-full p-2 bg-[#111827] rounded-lg"
+          type="number"
+          placeholder="Limite"
+          value={form.limite}
+          onChange={(e) => setForm({ ...form, limite: e.target.value })}
         />
       )}
-
       {/* VENCIMENTO */}
       <input
         className="w-full p-2 bg-[#111827] rounded-lg"
@@ -226,7 +233,7 @@ export default function RightSidebarCards({
             <p className="text-xs">
               {form.tipo === "vale" ? "Saldo" : "Limite"}:{" "}
               {form.tipo === "vale"
-                ? Number(form.saldo || 0).toLocaleString("pt-BR", {
+                ? Number(form.saldoInicial || 0).toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })
@@ -263,7 +270,7 @@ export default function RightSidebarCards({
               nome: "",
               banco: "",
               limite: "",
-              saldo: "",
+              saldoInicial: "",
               vencimento: "",
               tipo: "credito",
             });
