@@ -20,16 +20,10 @@ export default function RightSidebarCards({
 
   useEffect(() => {
     if (editandoCartao) {
-      setForm({
-        nome: "",
-        banco: "",
-        limite: "",
-        saldoInicial: "",
-        vencimento: "",
-        tipo: "credito",
-        diaReset: "",
+      setForm((prev) => ({
+        ...prev,
         ...editandoCartao,
-      });
+      }));
     }
   }, [editandoCartao]);
 
@@ -56,6 +50,7 @@ export default function RightSidebarCards({
                 saldoInicial:
                   form.tipo === "vale" ? Number(form.saldoInicial) : undefined,
                 vencimento: Number(form.vencimento),
+                diaReset: Number(form.diaReset), // 🔥 ADICIONA ISSO
               }
             : c,
         ),
@@ -167,8 +162,19 @@ export default function RightSidebarCards({
       {/* TIPO */}
       <select
         className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-        value={form.tipo || "credito"}
-        onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+        value={form.tipo}
+        onChange={(e) => {
+          const tipo = e.target.value;
+
+          setForm({
+            ...form,
+            tipo,
+            limite: tipo === "vale" ? "" : form.limite,
+            saldoInicial: tipo === "vale" ? form.saldoInicial : "",
+            diaReset: tipo === "vale" ? form.diaReset : "",
+            vencimento: tipo === "vale" ? "" : form.vencimento,
+          });
+        }}
       >
         <option value="credito">Crédito</option>
         <option value="debito">Débito</option>
@@ -176,33 +182,48 @@ export default function RightSidebarCards({
         <option value="vale">Vale</option>
       </select>
 
-      {/* LIMITE */}
+      {/* CAMPOS DINÂMICOS */}
       {form.tipo === "vale" ? (
-        <input
-          className="w-full p-2 bg-[#111827] rounded-lg"
-          type="number"
-          placeholder="Saldo inicial"
-          value={form.saldoInicial || ""}
-          onChange={(e) => setForm({ ...form, saldoInicial: e.target.value })}
-        />
-      ) : (
-        <input
-          className="w-full p-2 bg-[#111827] rounded-lg"
-          type="number"
-          placeholder="Limite"
-          value={form.limite}
-          onChange={(e) => setForm({ ...form, limite: e.target.value })}
-        />
-      )}
-      {/* VENCIMENTO */}
-      <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
-        type="number"
-        placeholder="Dia do vencimento"
-        value={form.vencimento}
-        onChange={(e) => setForm({ ...form, vencimento: e.target.value })}
-      />
+        <>
+          {/* SALDO */}
+          <input
+            className="w-full p-2 bg-[#111827] rounded-lg"
+            type="number"
+            placeholder="Saldo inicial"
+            value={form.saldoInicial || ""}
+            onChange={(e) => setForm({ ...form, saldoInicial: e.target.value })}
+          />
 
+          {/* RESET */}
+          <input
+            className="w-full p-2 bg-[#111827] rounded-lg"
+            type="number"
+            placeholder="Dia do reset"
+            value={form.diaReset || ""}
+            onChange={(e) => setForm({ ...form, diaReset: e.target.value })}
+          />
+        </>
+      ) : (
+        <>
+          {/* LIMITE */}
+          <input
+            className="w-full p-2 bg-[#111827] rounded-lg"
+            type="number"
+            placeholder="Limite"
+            value={form.limite}
+            onChange={(e) => setForm({ ...form, limite: e.target.value })}
+          />
+
+          {/* VENCIMENTO */}
+          <input
+            className="w-full p-2 bg-[#111827] rounded-lg"
+            type="number"
+            placeholder="Dia do vencimento"
+            value={form.vencimento}
+            onChange={(e) => setForm({ ...form, vencimento: e.target.value })}
+          />
+        </>
+      )}
       {/* PREVIEW 🔥 */}
       {form.banco && (
         <div
@@ -273,6 +294,7 @@ export default function RightSidebarCards({
               saldoInicial: "",
               vencimento: "",
               tipo: "credito",
+              diaReset: "",
             });
           }}
           className="cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg"
