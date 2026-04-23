@@ -30,4 +30,9 @@ export default [
     path: "/cards",
     icon: card,
   },
+  {
+    label: "Contas",
+    path: "/accounts",
+    icon: card,
+  },
 ];

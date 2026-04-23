@@ -2,75 +2,14 @@ import { useState } from "react";
 import { useBudget } from "../contexts/BudgetContext";
 import { motion, AnimatePresence } from "framer-motion";
 import RightSidebarCards from "../components/RightSidebarCards";
+import { getBank } from "../data/banks";
 
 export default function Cards() {
   const { cartoes = [], setCartoes, transactions = [] } = useBudget();
 
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
-
-  // 📌 bancos
-  const logosBanco = {
-    nubank: "/banks/nubank.svg",
-    inter: "/banks/inter.svg",
-    itau: "/banks/itau.svg",
-    santander: "/banks/santander.svg",
-    bradesco: "/banks/bradesco.svg",
-    bb: "/banks/bb.svg",
-    caixa: "/banks/caixa.svg",
-    sicoob: "/banks/sicoob.svg",
-    c6: "/banks/c6.svg",
-    original: "/banks/original.svg",
-    alelo: "/banks/alelo.svg",
-    default: "/banks/default.svg",
-  };
-
-  const coresBanco = {
-    nubank: "#8A05BE",
-    inter: "#FF7A00",
-    itau: "#EC7000",
-    santander: "#E30613",
-    bradesco: "#CC092F",
-    bb: "#F2C811",
-    caixa: "#0047AB",
-    sicoob: "#00A859",
-    c6: "#000000",
-    original: "#1F2937",
-    alelo: "#10B981",
-    default: "#111827",
-  };
-
-  const nomesBanco = {
-    nubank: "Nubank",
-    inter: "Inter",
-    itau: "Itaú",
-    santander: "Santander",
-    bradesco: "Bradesco",
-    bb: "Banco do Brasil",
-    caixa: "Caixa",
-    sicoob: "Sicoob",
-    c6: "C6 Bank",
-    original: "Banco Original",
-    alelo: "Alelo",
-  };
-
-  const normalizeBankName = (name = "") => {
-    const n = name.toLowerCase().trim();
-
-    if (n.includes("nubank")) return "nubank";
-    if (n.includes("inter")) return "inter";
-    if (n.includes("itaú") || n.includes("itau")) return "itau";
-    if (n.includes("santander")) return "santander";
-    if (n.includes("bradesco")) return "bradesco";
-    if (n.includes("banco do brasil") || n === "bb") return "bb";
-    if (n.includes("caixa")) return "caixa";
-    if (n.includes("sicoob")) return "sicoob";
-    if (n.includes("c6")) return "c6";
-    if (n.includes("original")) return "original";
-    if (n.includes("alelo")) return "alelo";
-
-    return "default";
-  };
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const formatCurrency = (v) =>
     Number(v || 0).toLocaleString("pt-BR", {
@@ -89,34 +28,21 @@ export default function Cards() {
     return `•••• •••• •••• ${digits.slice(-4)}`;
   };
 
-  const handleDelete = (id) => {
-    const confirmar = window.confirm(
-      "Tem certeza que deseja excluir este cartão?",
-    );
-    if (!confirmar) return;
-
-    setCartoes(cartoes.filter((c) => c.id !== id));
-
-    if (selected?.id === id) {
-      setSelected(null);
-    }
-  };
-
-  const [confirmDelete, setConfirmDelete] = useState(null);
-
   return (
     <div className="flex h-screen ">
       {/* GRID */}
       <div className="flex-1 p-6 overflow-y-auto pr-[360px] relative z-0">
-        {" "}
         <h1 className="text-2xl font-semibold mb-6">Cartões</h1>
+
         <div className="flex flex-wrap gap-6">
           {cartoes.map((c) => {
-            const key = normalizeBankName(c.banco);
+            const banco = getBank(c.banco);
 
-            const cor = coresBanco[key];
-            const logo = logosBanco[key];
-            const imagem = `/cards/${key}.svg`;
+            const cor = banco.cor;
+            const logo = banco.logo;
+            const nomeBanco = banco.nome;
+
+            const imagem = `/cards/${banco.key}.svg`;
 
             const gasto = getGasto(c.id);
             const limite = c.limite || 0;
@@ -148,18 +74,18 @@ export default function Cards() {
                 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
               >
-                {/* 🔥 OVERLAY ESCURO */}
+                {/* OVERLAY */}
                 <div className="absolute inset-0 bg-black/30 z-0" />
 
-                {/* 🔥 GLASS */}
+                {/* GLASS */}
                 <div className="absolute inset-0 bg-white/5 opacity-10 pointer-events-none z-0" />
 
-                {/* ✨ SHINE ANIMADO */}
+                {/* SHINE */}
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="absolute -left-1/2 top-0 w-[50%] h-full bg-white/10 skew-x-[-20deg] opacity-0 group-hover:opacity-100 group-hover:animate-shine" />
                 </div>
 
-                {/* 💡 GLOW */}
+                {/* GLOW */}
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500"
                   style={{
@@ -199,7 +125,7 @@ export default function Cards() {
                 {/* CONTEÚDO */}
                 <div className="text-white relative z-10">
                   <p className="text-xs opacity-70 uppercase">
-                    {nomesBanco[key] || c.banco}
+                    {nomeBanco || c.banco}
                   </p>
 
                   <p className="text-xs opacity-60 mt-1">
@@ -243,7 +169,7 @@ export default function Cards() {
         setEditandoCartao={setEditandoCartao}
       />
 
-      {/* VIEW EXPANDIDA (APP STORE) */}
+      {/* VIEW EXPANDIDA */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -254,17 +180,15 @@ export default function Cards() {
               className="w-[600px] max-h-[80vh] rounded-2xl p-6 overflow-y-auto"
               style={{
                 background: `linear-gradient(135deg, ${
-                  coresBanco[normalizeBankName(selected.banco)] || "#111827"
+                  getBank(selected.banco).cor
                 }, #0b0f1a)`,
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* TÍTULO */}
               <h2 className="text-white text-xl font-semibold">
                 {selected.nome}
               </h2>
 
-              {/* RESUMO DO CARTÃO */}
               {(() => {
                 const gastoSelecionado = getGasto(selected.id);
                 const limiteSelecionado = Number(selected.limite || 0);
@@ -297,7 +221,6 @@ export default function Cards() {
                 );
               })()}
 
-              {/* TRANSAÇÕES */}
               <div className="mt-5 flex flex-col gap-3">
                 {getTransacoes(selected.id).map((t) => (
                   <div
@@ -318,20 +241,15 @@ export default function Cards() {
         )}
       </AnimatePresence>
 
+      {/* MODAL DELETE */}
       <AnimatePresence>
         {confirmDelete && (
           <motion.div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50  bg-opacity-60"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
             onClick={() => setConfirmDelete(null)}
           >
             <motion.div
-              className="bg-[#111827]/70 p-6 rounded-2xl w-[460px] backdrop-opacity-60"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#111827]/70 p-6 rounded-2xl w-[460px]"
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-white text-lg font-semibold mb-2">
@@ -349,7 +267,7 @@ export default function Cards() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="px-4 py-2 rounded bg-white/10 text-white cursor-pointer hover:scale-105"
+                  className="px-4 py-2 rounded bg-white/10 text-white cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -361,7 +279,7 @@ export default function Cards() {
                     );
                     setConfirmDelete(null);
                   }}
-                  className="px-4 py-2 rounded bg-red-500 text-white cursor-pointer  hover:scale-105"
+                  className="px-4 py-2 rounded bg-red-500 text-white cursor-pointer"
                 >
                   Excluir
                 </button>

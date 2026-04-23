@@ -1,25 +1,6 @@
 import { useState, useEffect } from "react";
 import { useBudget } from "../contexts/BudgetContext";
-
-const coresCartao = {
-  nubank: "#8A05BE",
-  inter: "#FF7A00",
-  itau: "#EC7000",
-  santander: "#E30613",
-  bradesco: "#CC092F",
-  bb: "#F2C811",
-  caixa: "#0047AB",
-  sicoob: "#00A859",
-  c6: "#000000",
-  original: "#1F2937",
-  alelo: "#10B981",
-  default: "#111827",
-};
-
-const getCorCartao = (banco) => {
-  if (!banco) return coresCartao.default;
-  return coresCartao[banco.toLowerCase()] || coresCartao.default;
-};
+import { BANKS, getBank } from "../data/banks";
 
 export default function RightSidebarCards({
   editandoCartao,
@@ -120,21 +101,7 @@ export default function RightSidebarCards({
   };
 
   return (
-    <div
-      className="
-    fixed right-4 top-5
-    h-[calc(100vh-40px)]
-    w-[320px]
-    z-40
-    bg-[#0B0F1A]/70
-    p-5
-    space-y-3
-    rounded-2xl
-    shadow-xl
-    border border-gray-800
-    backdrop-blur-md
-    "
-    >
+    <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40 bg-[#0B0F1A]/70 p-5 space-y-3 rounded-2xl shadow-xl border border-gray-800 backdrop-blur-md">
       <h2 className="text-lg font-semibold mb-4">
         {editandoCartao ? "Editar cartão" : "Adicionar cartão"}
       </h2>
@@ -147,7 +114,7 @@ export default function RightSidebarCards({
         onChange={(e) => setForm({ ...form, nome: e.target.value })}
       />
 
-      {/* NÚMERO DO CARTÃO */}
+      {/* NÚMERO */}
       <input
         className="w-full p-2 bg-[#111827] rounded-lg"
         placeholder="Número do cartão (opcional)"
@@ -160,31 +127,22 @@ export default function RightSidebarCards({
         }}
       />
 
-      {/* BANCO */}
+      {/* BANCO (DINÂMICO 🔥) */}
       <select
         className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
         value={form.banco}
-        onChange={(e) =>
-          setForm({ ...form, banco: e.target.value.toLowerCase() })
-        }
+        onChange={(e) => setForm({ ...form, banco: e.target.value })}
       >
         <option value="">Selecionar banco</option>
-        <option value="nubank">Nubank</option>
-        <option value="inter">Inter</option>
-        <option value="itau">Itaú</option>
-        <option value="santander">Santander</option>
 
-        <option value="bradesco">Bradesco</option>
-        <option value="bb">Banco do Brasil</option>
-        <option value="caixa">Caixa</option>
-        <option value="sicoob">Sicoob</option>
-        <option value="c6">C6 Bank</option>
-        <option value="original">Original</option>
-        <option value="alelo">Alelo</option>
-        <option value="default">Outro</option>
+        {Object.entries(BANKS).map(([key, bank]) => (
+          <option key={key} value={key}>
+            {bank.nome}
+          </option>
+        ))}
       </select>
 
-      {/* TIPO DE CARTÃO */}
+      {/* TIPO */}
       <select
         className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
         value={form.tipo || "credito"}
@@ -213,19 +171,30 @@ export default function RightSidebarCards({
         onChange={(e) => setForm({ ...form, vencimento: e.target.value })}
       />
 
-      {/* PREVIEW DO CARTÃO */}
+      {/* PREVIEW 🔥 */}
       {form.banco && (
         <div
           className="relative rounded-xl overflow-hidden mt-2 h-[140px]"
           style={{
-            background: `linear-gradient(135deg, ${getCorCartao(form.banco)}, rgba(0,0,0,0.6))`,
+            background: `linear-gradient(135deg, ${
+              getBank(form.banco).cor
+            }, rgba(0,0,0,0.6))`,
           }}
         >
+          {/* overlay */}
           <div className="absolute inset-0 bg-black/20" />
 
+          {/* LOGO 🔥 */}
+          <img
+            src={getBank(form.banco).logo}
+            alt={getBank(form.banco).nome}
+            className="absolute top-3 right-3 w-10 h-10 object-contain opacity-90"
+          />
+
+          {/* conteúdo */}
           <div className="relative z-10 p-4 text-white flex flex-col justify-between h-full">
             <div>
-              <p className="text-sm opacity-80 capitalize">{form.banco}</p>
+              <p className="text-sm opacity-80">{getBank(form.banco).nome}</p>
               <p className="font-semibold">{form.nome || "Nome do cartão"}</p>
             </div>
 
@@ -247,7 +216,7 @@ export default function RightSidebarCards({
         onClick={handleAdd}
         className="cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"
       >
-        Adicionar
+        {editandoCartao ? "Salvar alterações" : "Adicionar"}
       </button>
 
       <button

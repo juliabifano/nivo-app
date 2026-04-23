@@ -7,6 +7,7 @@ import BudgetAnnual from "./pages/BudgetAnnual";
 import BudgetMonthly from "./pages/BudgetMonthly";
 import Transactions from "./pages/Transactions";
 import Cards from "./pages/Cards";
+import Accounts from "./pages/Accounts";
 
 export default function AppRoutes() {
   return (
@@ -21,6 +22,8 @@ export default function AppRoutes() {
         <Route path="/monthly" element={<BudgetMonthly />} />
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/cards" element={<Cards />} />
+        <Route path="/accounts" element={<Accounts />} />
+
       </Route>
     </Routes>
   );

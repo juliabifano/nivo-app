@@ -2,6 +2,7 @@ import { useBudget } from "../contexts/BudgetContext";
 import Chart from "react-apexcharts";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { getBank } from "../data/banks";
 
 export default function Dashboard() {
   const { transactions = [], cartoes = [], items = [] } = useBudget();
@@ -82,83 +83,6 @@ export default function Dashboard() {
       currency: "BRL",
     });
 
-  // -------------------------
-  // CORES E LOGOS
-  // -------------------------
-  const coresBanco = {
-    nubank: "#8A05BE",
-    inter: "#FF7A00",
-    itau: "#EC7000",
-    santander: "#E30613",
-    bradesco: "#CC092F",
-    bb: "#F2C811",
-    caixa: "#0047AB",
-    sicoob: "#00A859",
-    c6: "#000000",
-    original: "#1F2937",
-    alelo: "#10B981",
-    default: "#111827",
-  };
-
-  const logosBanco = {
-    nubank: "/banks/nubank.svg",
-    inter: "/banks/inter.svg",
-    itau: "/banks/itau.svg",
-    santander: "/banks/santander.svg",
-    bradesco: "/banks/bradesco.svg",
-    bb: "/banks/bb.svg",
-    caixa: "/banks/caixa.svg",
-    sicoob: "/banks/sicoob.svg",
-    c6: "/banks/c6.svg",
-    original: "/banks/original.svg",
-    alelo: "/banks/alelo.svg",
-    default: "/banks/default.svg",
-  };
-
-  const imagensCartao = {
-    nubank: "/cards/nubank.svg",
-    inter: "/cards/inter.svg",
-    itau: "/cards/itau.svg",
-    santander: "/cards/santander.svg",
-    bradesco: "/cards/bradesco.svg",
-    bb: "/cards/bb.svg",
-    caixa: "/cards/caixa.svg",
-    sicoob: "/cards/sicoob.svg",
-    c6: "/cards/c6.svg",
-    original: "/cards/original.svg",
-    alelo: "/cards/alelo.svg",
-    default: "/cards/default.svg",
-  };
-
-  const normalizeBankName = (name = "") => {
-    const n = name.toLowerCase().trim();
-
-    if (n.includes("nubank")) return "nubank";
-    if (n.includes("inter")) return "inter";
-    if (n.includes("itaú") || n.includes("itau")) return "itau";
-    if (n.includes("santander")) return "santander";
-    if (n.includes("bradesco")) return "bradesco";
-    if (n.includes("banco do brasil") || n === "bb") return "bb";
-    if (n.includes("caixa")) return "caixa";
-    if (n.includes("sicoob")) return "sicoob";
-    if (n.includes("c6")) return "c6";
-    if (n.includes("original")) return "original";
-    if (n.includes("alelo")) return "alelo";
-
-    return "default";
-  };
-
-  const normalizeCard = (c) => {
-    const key = normalizeBankName(c.banco);
-
-    return {
-      ...c,
-      cor: coresBanco[key] || coresBanco.default,
-      logo: logosBanco[key] || logosBanco.default,
-      imagem: imagensCartao[key] || imagensCartao.default,
-    };
-  };
-
   const getCardTotal = (id) =>
     transactions
       .filter((t) => t.cartao === id)
@@ -221,8 +145,7 @@ export default function Dashboard() {
     if (tipo.includes("dinheiro")) return "/icons/cash.svg";
 
     if (cartaoObj?.banco) {
-      const banco = cartaoObj.banco.toLowerCase();
-      return logosBanco[banco] || logosBanco.default;
+      return getBank(cartaoObj.banco).logo;
     }
 
     return "/icons/default.svg";
@@ -432,7 +355,14 @@ export default function Dashboard() {
 
                 <div className="flex flex-col gap-3">
                   {lastUsedCards.map((c, index) => {
-                    const card = normalizeCard(c);
+                    const banco = getBank(c?.banco);
+
+                    const card = {
+                      cor: banco.cor,
+                      logo: banco.logo,
+                      imagem: `/cards/${banco?.key || "default"}.svg`,
+                    };
+
                     const total = getCardTotal(c.id);
                     const percent = c.limite ? (total / c.limite) * 100 : 0;
                     const disponivel = c.limite ? c.limite - total : 0;
