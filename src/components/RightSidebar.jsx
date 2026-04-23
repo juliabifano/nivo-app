@@ -53,12 +53,6 @@ export default function RightSidebar({
           </option>
         ))}
 
-        {categorias.length === 0 && (
-          <p className="text-sm text-gray-500 mt-2">
-            Nenhuma categoria ainda. 
-          </p>
-        )}
-
         <option value="nova">+ Nova categoria</option>
       </select>
       {form.categoria === "nova" && (
@@ -80,6 +74,12 @@ export default function RightSidebar({
             setForm({ ...form, categoria: nova });
           }}
         />
+      )}
+
+      {categorias.length === 0 && (
+        <p className="text-xs text-gray-500 -mt-2 mb-2 italic">
+          Crie sua primeira categoria 👇
+        </p>
       )}
 
       <input

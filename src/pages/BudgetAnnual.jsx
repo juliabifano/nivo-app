@@ -8,7 +8,7 @@ import EditIcon from "../assets/icons/Edit.svg?react";
 import { useBudget } from "../contexts/BudgetContext";
 
 export default function BudgetAnnual() {
-  const { items, setItems, categorias, setCategorias } = useBudget();
+  const { items = [], setItems, categorias, setCategorias } = useBudget();
 
   const [form, setForm] = useState({
     descricao: "",
@@ -88,7 +88,8 @@ export default function BudgetAnnual() {
 
     items.forEach((item) => {
       const valor = Number(item.valorMensal) || 0;
-      const meses = item.meses?.length || 0;
+
+      const meses = Array.isArray(item.meses) ? item.meses.length : 0;
       const total = valor * meses;
 
       if (item.tipo === "receita") receitas += total;
@@ -100,25 +101,26 @@ export default function BudgetAnnual() {
 
   const { receitas, despesas, saldo } = calculateTotals();
 
-  const getCategoryDataByType = (tipo) => {
-    const data = {};
+ const getCategoryDataByType = (tipo) => {
+  const data = {};
 
-    items.forEach((item) => {
-      if (item.tipo !== tipo) return;
+  items.forEach((item) => {
+    if (item.tipo !== tipo) return;
 
-      const valor = Number(item.valorMensal) || 0;
-      const meses = item.meses?.length || 0;
-      const total = valor * meses;
-      const categoria = item.categoria || "Sem categoria";
+    const valor = Number(item.valorMensal) || 0;
+    const meses = Array.isArray(item.meses) ? item.meses.length : 0;
+    const total = valor * meses;
 
-      data[categoria] = (data[categoria] || 0) + total;
-    });
+    const categoria = item.categoria || "Sem categoria";
 
-    return Object.entries(data).map(([name, value]) => ({
-      name,
-      value,
-    }));
-  };
+    data[categoria] = (data[categoria] || 0) + total;
+  });
+
+  return Object.entries(data).map(([name, value]) => ({
+    name,
+    value,
+  }));
+};
 
   const despesasData = getCategoryDataByType("despesa");
   const receitasData = getCategoryDataByType("receita");

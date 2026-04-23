@@ -13,13 +13,24 @@ const load = (key, fallback) => {
 
 export function BudgetProvider({ children }) {
   const [transactions, setTransactions] = useState(() =>
-    load("nivo-transactions", []),
+    load("nivo-transactions", [])
   );
 
-  const [cartoes, setCartoes] = useState(() => load("nivo-cartoes", []));
-  const [accounts, setAccounts] = useState(() => load("accounts", []));
+  const [cartoes, setCartoes] = useState(() =>
+    load("nivo-cartoes", [])
+  );
+
+  const [accounts, setAccounts] = useState(() =>
+    load("accounts", [])
+  );
+
   const [categorias, setCategorias] = useState(() =>
-    load("nivo-categorias", []),
+    load("nivo-categorias", [])
+  );
+
+  // ✅ NOVO: items (orçamento anual)
+  const [items, setItems] = useState(() =>
+    load("nivo-items", [])
   );
 
   // =========================
@@ -41,6 +52,11 @@ export function BudgetProvider({ children }) {
     localStorage.setItem("nivo-categorias", JSON.stringify(categorias));
   }, [categorias]);
 
+  // ✅ NOVO: persistência dos items
+  useEffect(() => {
+    localStorage.setItem("nivo-items", JSON.stringify(items));
+  }, [items]);
+
   // =========================
   // TRANSAÇÕES CRUD
   // =========================
@@ -50,7 +66,7 @@ export function BudgetProvider({ children }) {
 
   function updateTransaction(id, data) {
     setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...data } : t)),
+      prev.map((t) => (t.id === id ? { ...t, ...data } : t))
     );
   }
 
@@ -62,7 +78,7 @@ export function BudgetProvider({ children }) {
   // HELPERS CARTÃO
   // =========================
   const getTransacoesDoCartao = (cardId) =>
-  transactions.filter((t) => String(t.cartaoId) === String(cardId));
+    transactions.filter((t) => String(t.cartaoId) === String(cardId));
 
   function getFatura(cardId) {
     return getTransacoesDoCartao(cardId)
@@ -100,7 +116,7 @@ export function BudgetProvider({ children }) {
 
       const gasto = transacoes.reduce(
         (acc, t) => acc + Number(t.valor || 0),
-        0,
+        0
       );
 
       return {
@@ -125,6 +141,10 @@ export function BudgetProvider({ children }) {
         setAccounts,
         categorias,
         setCategorias,
+
+        // ✅ NOVO: items
+        items,
+        setItems,
 
         // CRUD
         addTransaction,
