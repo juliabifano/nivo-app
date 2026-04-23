@@ -148,7 +148,10 @@ export default function RightSidebarTransactions({
           setForm({
             ...form,
             formaPagamento: tipo,
-            cartao: tipo === "credito" || tipo === "debito" ? form.cartao : "",
+            cartao:
+              tipo === "credito" || tipo === "debito" || tipo === "vale"
+                ? form.cartao
+                : "",
             parcelas: tipo === "credito" ? form.parcelas : "",
           });
         }}
@@ -157,11 +160,11 @@ export default function RightSidebarTransactions({
         <option value="debito">Débito</option>
         <option value="credito">Crédito</option>
         <option value="dinheiro">Dinheiro</option>
+        <option value="vale">Vale</option>
       </select>
 
       {/* CARTÃO */}
-      {(form.formaPagamento === "credito" ||
-        form.formaPagamento === "debito") && (
+      {["credito", "debito", "vale"].includes(form.formaPagamento) && (
         <select
           className="w-full p-2 bg-[#111827] rounded-lg mt-2 cursor-pointer"
           value={form.cartao}
@@ -176,6 +179,9 @@ export default function RightSidebarTransactions({
               }
               if (form.formaPagamento === "debito") {
                 return c.tipo === "debito" || c.tipo === "multiplo";
+              }
+              if (form.formaPagamento === "vale") {
+                return c.tipo === "vale";
               }
               return false;
             })

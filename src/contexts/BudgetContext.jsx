@@ -13,25 +13,19 @@ const load = (key, fallback) => {
 
 export function BudgetProvider({ children }) {
   const [transactions, setTransactions] = useState(() =>
-    load("nivo-transactions", [])
+    load("nivo-transactions", []),
   );
 
-  const [cartoes, setCartoes] = useState(() =>
-    load("nivo-cartoes", [])
-  );
+  const [cartoes, setCartoes] = useState(() => load("nivo-cartoes", []));
 
-  const [accounts, setAccounts] = useState(() =>
-    load("accounts", [])
-  );
+  const [accounts, setAccounts] = useState(() => load("accounts", []));
 
   const [categorias, setCategorias] = useState(() =>
-    load("nivo-categorias", [])
+    load("nivo-categorias", []),
   );
 
   // ✅ NOVO: items (orçamento anual)
-  const [items, setItems] = useState(() =>
-    load("nivo-items", [])
-  );
+  const [items, setItems] = useState(() => load("nivo-items", []));
 
   // =========================
   // PERSISTÊNCIA
@@ -66,7 +60,7 @@ export function BudgetProvider({ children }) {
 
   function updateTransaction(id, data) {
     setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...data } : t))
+      prev.map((t) => (t.id === id ? { ...t, ...data } : t)),
     );
   }
 
@@ -114,15 +108,36 @@ export function BudgetProvider({ children }) {
     if (card.tipo === "vale") {
       const saldoInicial = Number(card.saldoInicial || 0);
 
-      const gasto = transacoes.reduce(
-        (acc, t) => acc + Number(t.valor || 0),
-        0
-      );
+      const getLastResetDate = (diaReset) => {
+        if (!diaReset) return null;
+
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth();
+
+        const dataResetMesAtual = new Date(ano, mes, diaReset);
+
+        if (hoje < dataResetMesAtual) {
+          return new Date(ano, mes - 1, diaReset);
+        }
+
+        return dataResetMesAtual;
+      };
+
+      const lastReset = getLastResetDate(card.diaReset);
+
+      const gastoPeriodo = transacoes
+        .filter((t) => {
+          const data = new Date(t.data);
+          return lastReset ? data >= lastReset : true;
+        })
+        .reduce((acc, t) => acc + Number(t.valor || 0), 0);
 
       return {
         saldoInicial,
-        gasto,
-        disponivel: saldoInicial - gasto,
+        gasto: gastoPeriodo,
+        disponivel: saldoInicial - gastoPeriodo,
+        percent: saldoInicial > 0 ? (gastoPeriodo / saldoInicial) * 100 : 0,
       };
     }
 

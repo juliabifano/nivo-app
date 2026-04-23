@@ -19,13 +19,39 @@ export default function Cards() {
 
   const getTransacoes = (id) => transactions.filter((t) => t.cartao === id);
 
-  const getGasto = (id) =>
-    getTransacoes(id).reduce((acc, t) => acc + Number(t.valor), 0);
+  const getGasto = (id) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    return getTransacoes(id)
+      .filter((t) => {
+        const d = new Date(t.data);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((acc, t) => acc + Number(t.valor), 0);
+  };
 
   const formatCardNumber = (num) => {
     if (!num) return "•••• •••• •••• 0000";
     const digits = num.replace(/\D/g, "");
     return `•••• •••• •••• ${digits.slice(-4)}`;
+  };
+
+  const getLastResetDate = (diaReset) => {
+    if (!diaReset) return null;
+
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+
+    const dataResetMesAtual = new Date(ano, mes, diaReset);
+
+    // Se ainda não chegou no dia do reset esse mês
+    if (hoje < dataResetMesAtual) {
+      return new Date(ano, mes - 1, diaReset);
+    }
+
+    return dataResetMesAtual;
   };
 
   return (
@@ -45,10 +71,36 @@ export default function Cards() {
             const imagem = `/cards/${banco.key}.svg`;
 
             const gasto = getGasto(c.id);
-            const limite = c.limite || 0;
-            const disponivel = limite - gasto;
 
-            const percent = limite > 0 ? (gasto / limite) * 100 : 0;
+            let limite = Number(c.limite || 0);
+            let saldo = Number(c.saldo || 0);
+
+            let disponivel = 0;
+            let percent = 0;
+
+            if (c.tipo === "credito" || c.tipo === "multiplo") {
+              disponivel = limite - gasto;
+              percent = limite > 0 ? (gasto / limite) * 100 : 0;
+            }
+
+            if (c.tipo === "vale") {
+              const lastReset = getLastResetDate(c.diaReset);
+
+              const gastoPeriodo = transactions
+                .filter((t) => {
+                  if (t.cartao !== c.id) return false;
+
+                  const data = new Date(t.data);
+                  return lastReset ? data >= lastReset : true;
+                })
+                .reduce((acc, t) => acc + Number(t.valor), 0);
+
+              disponivel = saldo - gastoPeriodo;
+              percent = saldo > 0 ? (gastoPeriodo / saldo) * 100 : 0;
+            }
+
+            // trava em 100%
+            percent = Math.min(percent, 100);
 
             const getBarColor = () => {
               if (percent > 80) return "bg-red-400";
@@ -132,6 +184,7 @@ export default function Cards() {
                     {c.tipo === "credito" && "Crédito"}
                     {c.tipo === "debito" && "Débito"}
                     {c.tipo === "multiplo" && "Crédito + Débito"}
+                    {c.tipo === "vale" && "Vale"}
                   </p>
 
                   <p className="font-semibold text-lg mt-1">{c.nome}</p>
@@ -141,13 +194,32 @@ export default function Cards() {
                   </p>
 
                   <div className="mt-6">
-                    <p className="text-sm">Limite: {formatCurrency(limite)}</p>
+                    {(c.tipo === "credito" || c.tipo === "multiplo") && (
+                      <>
+                        <p className="text-sm">
+                          Limite: {formatCurrency(limite)}
+                        </p>
 
-                    <p className="text-xs opacity-70">
-                      Disponível: {formatCurrency(disponivel)}
-                    </p>
+                        <p className="text-xs opacity-70">
+                          Disponível: {formatCurrency(disponivel)}
+                        </p>
+                      </>
+                    )}
 
-                    {limite > 0 && (
+                    {c.tipo === "vale" && (
+                      <>
+                        <p className="text-sm">
+                          Saldo: {formatCurrency(saldo)}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          Restante: {formatCurrency(disponivel)}
+                        </p>
+                      </>
+                    )}
+
+                    {((["credito", "multiplo"].includes(c.tipo) &&
+                      limite > 0) ||
+                      (c.tipo === "vale" && saldo > 0)) && (
                       <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden mt-3">
                         <div
                           className={`h-1.5 rounded-full ${getBarColor()}`}
@@ -192,15 +264,45 @@ export default function Cards() {
               {(() => {
                 const gastoSelecionado = getGasto(selected.id);
                 const limiteSelecionado = Number(selected.limite || 0);
-                const disponivelSelecionado =
-                  limiteSelecionado - gastoSelecionado;
+                const saldoSelecionado = Number(selected.saldo || 0);
+
+                let disponivelSelecionado = 0;
+
+                if (
+                  selected.tipo === "credito" ||
+                  selected.tipo === "multiplo"
+                ) {
+                  disponivelSelecionado = limiteSelecionado - gastoSelecionado;
+                }
+
+                if (selected.tipo === "vale") {
+                  const lastReset = getLastResetDate(selected.diaReset);
+
+                  const gastoPeriodo = transactions
+                    .filter((t) => {
+                      if (t.cartao !== selected.id) return false;
+
+                      const data = new Date(t.data);
+                      return lastReset ? data >= lastReset : true;
+                    })
+                    .reduce((acc, t) => acc + Number(t.valor), 0);
+
+                  disponivelSelecionado = saldoSelecionado - gastoPeriodo;
+                }
 
                 return (
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     <div className="bg-white/10 p-3 rounded-lg">
-                      <p className="text-xs text-gray-300">Limite</p>
+                      <p className="text-xs text-gray-300">
+                        {selected.tipo === "vale" ? "Saldo" : "Limite"}
+                      </p>
+
                       <p className="text-white font-semibold">
-                        {formatCurrency(limiteSelecionado)}
+                        {formatCurrency(
+                          selected.tipo === "vale"
+                            ? saldoSelecionado
+                            : limiteSelecionado,
+                        )}
                       </p>
                     </div>
 

@@ -118,7 +118,7 @@ export default function Transactions() {
   return (
     <div className="flex h-screen overflow-hidden  text-white">
       {/* CENTRO */}
-      <div className="flex-1 p-6 overflow-y-auto flex justify-center mb-5">
+      <div className="flex-1 p-6 overflow-y-auto pr-[360px] flex justify-center mb-5">
         <div className="w-full max-w-3xl flex flex-col gap-6">
           <h1 className="text-2xl font-semibold">Lançamentos</h1>
 
