@@ -24,8 +24,9 @@ export function BudgetProvider({ children }) {
     load("nivo-categorias", []),
   );
 
-  // ✅ NOVO: items (orçamento anual)
   const [items, setItems] = useState(() => load("nivo-items", []));
+
+  const [faturas, setFaturas] = useState(() => load("nivo-faturas", []));
 
   // =========================
   // PERSISTÊNCIA
@@ -46,16 +47,29 @@ export function BudgetProvider({ children }) {
     localStorage.setItem("nivo-categorias", JSON.stringify(categorias));
   }, [categorias]);
 
-  // ✅ NOVO: persistência dos items
   useEffect(() => {
     localStorage.setItem("nivo-items", JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    localStorage.setItem("nivo-faturas", JSON.stringify(faturas));
+  }, [faturas]);
 
   // =========================
   // TRANSAÇÕES CRUD
   // =========================
   function addTransaction(tx) {
-    setTransactions((prev) => [...prev, tx]);
+    const normalized = {
+      id: tx.id,
+      descricao: tx.descricao,
+      valor: Number(tx.valor),
+      data: tx.data,
+      cartaoId: tx.cartao, // 👈 AQUI É O PONTO
+      formaPagamento: tx.formaPagamento || "debito",
+      tipo: tx.tipo || "despesa",
+    };
+
+    setTransactions((prev) => [...prev, normalized]);
   }
 
   function updateTransaction(id, data) {
@@ -74,9 +88,22 @@ export function BudgetProvider({ children }) {
   const getTransacoesDoCartao = (cardId) =>
     transactions.filter((t) => String(t.cartaoId) === String(cardId));
 
-  function getFatura(cardId) {
-    return getTransacoesDoCartao(cardId)
-      .filter((t) => t.formaPagamento === "credito")
+  function getFatura(cardId, tipo) {
+    return transactions
+      .filter((t) => {
+        if (!t.cartaoId) return false; // 🔥 remove vazio
+
+        const pertenceCartao = String(t.cartaoId) === String(cardId);
+        if (!pertenceCartao) return false;
+
+        if (tipo === "credito") return true;
+
+        if (tipo === "multiplo") {
+          return t.tipo === "despesa";
+        }
+
+        return false;
+      })
       .reduce((acc, t) => acc + Number(t.valor || 0), 0);
   }
 
@@ -88,7 +115,7 @@ export function BudgetProvider({ children }) {
     const transacoes = getTransacoesDoCartao(card.id);
 
     if (card.tipo === "credito" || card.tipo === "multiplo") {
-      const fatura = getFatura(card.id);
+      const fatura = getFatura(card.id, card.tipo);
       const limite = Number(card.limite || 0);
 
       return {
@@ -156,10 +183,10 @@ export function BudgetProvider({ children }) {
         setAccounts,
         categorias,
         setCategorias,
-
-        // ✅ NOVO: items
         items,
         setItems,
+        faturas,
+        setFaturas,
 
         // CRUD
         addTransaction,

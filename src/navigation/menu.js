@@ -3,6 +3,7 @@ import budget from "../assets/icons/budget.svg";
 import card from "../assets/icons/card.svg";
 import transfer from "../assets/icons/transfer.svg";
 import calendar from "../assets/icons/Calendar.svg";
+import cards from "../assets/icons/cards.svg";
 
 export default [
   {
@@ -33,6 +34,6 @@ export default [
   {
     label: "Contas",
     path: "/accounts",
-    icon: card,
+    icon: cards,
   },
 ];

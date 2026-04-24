@@ -3,6 +3,7 @@ import { useBudget } from "../contexts/BudgetContext";
 import { motion, AnimatePresence } from "framer-motion";
 import RightSidebarCards from "../components/RightSidebarCards";
 import { getBank } from "../data/banks";
+import { generateInvoice } from "../utils/invoices";
 
 export default function Cards() {
   const { cartoes = [], setCartoes, transactions = [] } = useBudget();
@@ -10,6 +11,7 @@ export default function Cards() {
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [tab, setTab] = useState("transacoes");
 
   const formatCurrency = (v) =>
     Number(v || 0).toLocaleString("pt-BR", {
@@ -17,7 +19,8 @@ export default function Cards() {
       currency: "BRL",
     });
 
-  const getTransacoes = (id) => transactions.filter((t) => t.cartao === id);
+  const getTransacoes = (id) =>
+    transactions.filter((t) => String(t.cartaoId) === String(id));
 
   const getGasto = (id) => {
     const currentMonth = new Date().getMonth();
@@ -26,6 +29,7 @@ export default function Cards() {
     return getTransacoes(id)
       .filter((t) => {
         const d = new Date(t.data);
+
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, t) => acc + Number(t.valor), 0);
@@ -53,6 +57,8 @@ export default function Cards() {
 
     return dataResetMesAtual;
   };
+
+  console.log("TRANSACTIONS NO CARDS:", transactions);
 
   return (
     <div className="flex h-screen ">
@@ -88,7 +94,7 @@ export default function Cards() {
 
               const gastoPeriodo = transactions
                 .filter((t) => {
-                  if (t.cartao !== c.id) return false;
+                  if (t.cartaoId !== c.id) return false;
 
                   const data = new Date(t.data);
                   return lastReset ? data >= lastReset : true;
@@ -280,7 +286,7 @@ export default function Cards() {
 
                   const gastoPeriodo = transactions
                     .filter((t) => {
-                      if (t.cartao !== selected.id) return false;
+                      if (t.cartaoId !== selected.id) return false;
 
                       const data = new Date(t.data);
                       return lastReset ? data >= lastReset : true;
@@ -324,19 +330,108 @@ export default function Cards() {
               })()}
 
               <div className="mt-5 flex flex-col gap-3">
-                {getTransacoes(selected.id).map((t) => (
-                  <div
-                    key={t.id}
-                    className="flex justify-between bg-white/10 p-3 rounded-lg"
-                  >
-                    <span className="text-white text-sm">
-                      {t.descricao.toUpperCase()}
-                    </span>
-                    <span className="text-white/70 text-sm">
-                      {formatCurrency(t.valor)}
-                    </span>
+                {/* HEADER + AÇÕES */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white font-medium">Detalhes do cartão</h3>
+
+                  {(selected.tipo === "credito" ||
+                    selected.tipo === "multiplo") && (
+                    <button
+                      onClick={() => {
+                        const fatura = generateInvoice({
+                          transactions,
+                          card: selected,
+                          month: new Date().getMonth() + 1,
+                          year: new Date().getFullYear(),
+                        });
+                        setTab("fatura");
+                      }}
+                      className="px-3 py-1 rounded bg-white/10 text-white text-sm hover:bg-white/20 transition cursor-pointer"
+                    >
+                      Gerar fatura
+                    </button>
+                  )}
+                </div>
+
+                {/* ABAS */}
+                <div className="flex gap-3 mt-2">
+                  {["resumo", "transacoes", "fatura"].map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setTab(item)}
+                      className={`text-sm px-3 py-1 rounded cursor-pointer ${
+                        tab === item
+                          ? "bg-white/20 text-white"
+                          : "text-white/60"
+                      }`}
+                    >
+                      {item === "resumo" && "Resumo"}
+                      {item === "transacoes" && "Transações"}
+                      {item === "fatura" && "Fatura"}
+                    </button>
+                  ))}
+                </div>
+
+                {/* RESUMO */}
+                {tab === "resumo" && (
+                  <div className="text-white text-sm mt-3">
+                    Aqui você pode depois colocar gráficos ou saldo do cartão.
                   </div>
-                ))}
+                )}
+
+                {/* TRANSAÇÕES */}
+                {tab === "transacoes" && (
+                  <div className="flex flex-col gap-3 mt-3">
+                    {getTransacoes(selected.id).map((t) => (
+                      <div
+                        key={t.id}
+                        className="flex justify-between bg-white/10 p-3 rounded-lg"
+                      >
+                        <span className="text-white text-sm">
+                          {t.descricao.toUpperCase()}
+                        </span>
+                        <span className="text-white/70 text-sm">
+                          {formatCurrency(t.valor)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* FATURA */}
+                {tab === "fatura" &&
+                  (() => {
+                    const fatura = generateInvoice({
+                      transactions,
+                      card: selected,
+                      month: new Date().getMonth() + 1,
+                      year: new Date().getFullYear(),
+                    });
+
+                    return (
+                      <div className="mt-3 text-white">
+                        <p className="text-lg font-semibold mb-3">
+                          Fatura do cartão
+                        </p>
+
+                        <p className="mb-4 text-white/70">
+                          Total: {formatCurrency(fatura.total)}
+                        </p>
+
+                        <div className="flex flex-col gap-2">
+                          {fatura.transactions.map((t) => (
+                            <div
+                              key={t.id}
+                              className="flex justify-between bg-white/10 p-2 rounded"
+                            >
+                              <span>{t.descricao}</span>
+                              <span>{formatCurrency(t.valor)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
               </div>
             </motion.div>
           </motion.div>

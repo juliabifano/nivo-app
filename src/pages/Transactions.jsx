@@ -33,7 +33,7 @@ export default function Transactions() {
     valor: "",
     tipo: "despesa",
     data: getToday(),
-    formaPagamento: "pix",
+    formaPagamento: "",
     cartao: "",
     parcelas: "",
   });
@@ -86,15 +86,18 @@ export default function Transactions() {
       }
     }
 
+    console.log("FORM:", form);
+
     if (editandoId) {
       setTransactions(
         transactions.map((item) =>
           item.id === editandoId
             ? {
                 ...form,
-                id: editandoId,
+                id: crypto.randomUUID(),
                 valor: valorTotal,
                 totalParcelas: parcelas,
+                cartaoId: form.cartao || null,
               }
             : item,
         ),
@@ -109,7 +112,10 @@ export default function Transactions() {
       id: crypto.randomUUID(),
       valor: valorTotal,
       totalParcelas: parcelas,
+      cartaoId: form.cartao || null,
     };
+
+    console.log("NEW TRANSACTION:", newTransaction);
 
     setTransactions([newTransaction, ...transactions]);
     resetForm();
@@ -180,7 +186,7 @@ export default function Transactions() {
                   return false;
                 }
 
-                if (filtroCartao && t.cartao !== filtroCartao) {
+                if (filtroCartao && t.cartaoId !== filtroCartao) {
                   return false;
                 }
 
