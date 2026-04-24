@@ -15,8 +15,22 @@ export function generateInvoice({ transactions, card, month, year }) {
     return new Date(date);
   };
 
+  const getInvoiceMonth = (dataCompra, diaFechamento) => {
+    const dia = dataCompra.getDate();
+    const mes = dataCompra.getMonth(); // 0–11
+    const ano = dataCompra.getFullYear();
+
+    if (dia > diaFechamento) {
+      return { mes: mes + 2, ano }; // próximo mês (1–12)
+    }
+
+    return { mes: mes + 1, ano }; // mês atual (1–12)
+  };
+
   transactions.forEach((t) => {
     if (String(t.cartaoId) !== String(card.id)) return;
+
+    console.log("FORMA PAGAMENTO:", t.formaPagamento);
 
     if (t.formaPagamento !== "credito") return;
 
@@ -32,19 +46,24 @@ export function generateInvoice({ transactions, card, month, year }) {
         dataCompra.getDate(),
       );
 
+      const { mes, ano } = getInvoiceMonth(dataParcela, card.fechamento || 10);
+
       expanded.push({
         id: `${t.id}-${i}`,
         descricao: `${t.descricao} (${i + 1}/${totalParcelas})`,
         valor: valorParcela,
         data: dataParcela,
+        mesFatura: mes,
+        anoFatura: ano,
         cartaoId: t.cartaoId,
       });
     }
   });
 
+  console.log("EXPANDED:", expanded);
+
   const filtered = expanded.filter((t) => {
-    const date = new Date(t.data);
-    return date >= startDate && date <= endDate;
+    return t.mesFatura === month && t.anoFatura === year;
   });
 
   return {

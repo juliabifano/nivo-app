@@ -14,6 +14,7 @@ export default function RightSidebarCards({
     limite: "",
     saldoInicial: "",
     vencimento: "",
+    fechamento: "",
     tipo: "credito",
     diaReset: "",
   });
@@ -50,7 +51,8 @@ export default function RightSidebarCards({
                 saldoInicial:
                   form.tipo === "vale" ? Number(form.saldoInicial) : undefined,
                 vencimento: Number(form.vencimento),
-                diaReset: Number(form.diaReset), // 🔥 ADICIONA ISSO
+                fechamento: Number(form.fechamento), // 👈 AQUI
+                diaReset: Number(form.diaReset),
               }
             : c,
         ),
@@ -63,6 +65,7 @@ export default function RightSidebarCards({
         id: crypto.randomUUID(),
         limite: Number(form.limite || 0),
         saldoInicial: Number(form.saldoInicial || 0),
+        fechamento: Number(form.fechamento), // 👈 AQUI
         diaReset: Number(form.diaReset),
         numeroCartao: form.numeroCartao?.replace(/\s/g, ""),
         tipo: form.tipo || "credito",
@@ -77,6 +80,7 @@ export default function RightSidebarCards({
       limite: "",
       saldoInicial: "",
       vencimento: "",
+      fechamento: "",
       tipo: "credito",
       diaReset: "",
     });
@@ -183,7 +187,7 @@ export default function RightSidebarCards({
       </select>
 
       {/* CAMPOS DINÂMICOS */}
-      {form.tipo === "vale" ? (
+      {form.tipo === "vale" && (
         <>
           {/* SALDO */}
           <input
@@ -203,7 +207,9 @@ export default function RightSidebarCards({
             onChange={(e) => setForm({ ...form, diaReset: e.target.value })}
           />
         </>
-      ) : (
+      )}
+
+      {["credito", "multiplo"].includes(form.tipo) && (
         <>
           {/* LIMITE */}
           <input
@@ -222,8 +228,19 @@ export default function RightSidebarCards({
             value={form.vencimento}
             onChange={(e) => setForm({ ...form, vencimento: e.target.value })}
           />
+
+          {/* FECHAMENTO 🔥 */}
+          <input
+            className="w-full p-2 bg-[#111827] rounded-lg"
+            type="number"
+            placeholder="Dia do fechamento"
+            value={form.fechamento || ""}
+            onChange={(e) => setForm({ ...form, fechamento: e.target.value })}
+          />
         </>
       )}
+
+      
       {/* PREVIEW 🔥 */}
       {form.banco && (
         <div

@@ -58,7 +58,36 @@ export default function Cards() {
     return dataResetMesAtual;
   };
 
-  console.log("TRANSACTIONS NO CARDS:", transactions);
+  const getInvoicePeriod = (month, year, fechamento) => {
+    const diaFechamento = fechamento || 10;
+
+    // fim da fatura (dia de fechamento)
+    const end = new Date(year, month - 1, diaFechamento);
+
+    // início = dia seguinte do fechamento anterior
+    const start = new Date(year, month - 2, diaFechamento + 1);
+
+    return { start, end };
+  };
+
+  const getCurrentInvoiceDate = (card) => {
+    const hoje = new Date();
+    const diaHoje = hoje.getDate();
+
+    let mes = hoje.getMonth() + 1;
+    let ano = hoje.getFullYear();
+
+    if (diaHoje > (card.fechamento || 10)) {
+      mes += 1;
+
+      if (mes > 12) {
+        mes = 1;
+        ano += 1;
+      }
+    }
+
+    return { mes, ano };
+  };
 
   return (
     <div className="flex h-screen ">
@@ -338,12 +367,15 @@ export default function Cards() {
                     selected.tipo === "multiplo") && (
                     <button
                       onClick={() => {
+                        const { mes, ano } = getCurrentInvoiceDate(selected);
+
                         const fatura = generateInvoice({
                           transactions,
                           card: selected,
-                          month: new Date().getMonth() + 1,
-                          year: new Date().getFullYear(),
+                          month: mes,
+                          year: ano,
                         });
+
                         setTab("fatura");
                       }}
                       className="px-3 py-1 rounded bg-white/10 text-white text-sm hover:bg-white/20 transition cursor-pointer"
@@ -401,12 +433,20 @@ export default function Cards() {
                 {/* FATURA */}
                 {tab === "fatura" &&
                   (() => {
+                    const { mes, ano } = getCurrentInvoiceDate(selected);
+
                     const fatura = generateInvoice({
                       transactions,
                       card: selected,
-                      month: new Date().getMonth() + 1,
-                      year: new Date().getFullYear(),
+                      month: mes,
+                      year: ano,
                     });
+
+                    const { start, end } = getInvoicePeriod(
+                      mes,
+                      ano,
+                      selected.fechamento,
+                    );
 
                     return (
                       <div className="mt-3 text-white">
@@ -414,20 +454,35 @@ export default function Cards() {
                           Fatura do cartão
                         </p>
 
+                        <p className="text-sm text-white/60 mb-2">
+                          {start.toLocaleDateString("pt-BR")} →{" "}
+                          {end.toLocaleDateString("pt-BR")}
+                        </p>
+
                         <p className="mb-4 text-white/70">
                           Total: {formatCurrency(fatura.total)}
                         </p>
 
                         <div className="flex flex-col gap-2">
-                          {fatura.transactions.map((t) => (
-                            <div
-                              key={t.id}
-                              className="flex justify-between bg-white/10 p-2 rounded"
-                            >
-                              <span>{t.descricao}</span>
-                              <span>{formatCurrency(t.valor)}</span>
-                            </div>
-                          ))}
+                          {fatura.transactions.length === 0 ? (
+                            <p className="text-white/50 text-sm text-center mt-4">
+                              Nenhuma compra nesta fatura
+                            </p>
+                          ) : (
+                            [...fatura.transactions]
+                              .sort(
+                                (a, b) => new Date(a.data) - new Date(b.data),
+                              )
+                              .map((t) => (
+                                <div
+                                  key={t.id}
+                                  className="flex justify-between bg-white/10 p-2 rounded"
+                                >
+                                  <span>{t.descricao}</span>
+                                  <span>{formatCurrency(t.valor)}</span>
+                                </div>
+                              ))
+                          )}
                         </div>
                       </div>
                     );
