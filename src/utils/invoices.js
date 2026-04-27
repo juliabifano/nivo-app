@@ -73,3 +73,29 @@ export function generateInvoice({ transactions, card, month, year }) {
     transactions: filtered,
   };
 }
+
+export const groupByDate = (transactions) => {
+  const groups = {};
+
+  transactions.forEach((t) => {
+    const date = new Date(t.data);
+    const key = date.toISOString().split("T")[0];
+
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+
+    groups[key].push(t);
+  });
+
+  return groups;
+};
+
+export const formatDateLabel = (dateStr) => {
+  const date = new Date(dateStr);
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+  }).toUpperCase();
+};
