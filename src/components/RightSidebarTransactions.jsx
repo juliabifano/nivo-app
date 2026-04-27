@@ -9,8 +9,6 @@ export default function RightSidebarTransactions({
   editandoId,
   setEditandoId,
   cartoes,
-  categorias,
-  setCategorias,
 }) {
   const { categorias, setCategorias } = useBudget();
 
