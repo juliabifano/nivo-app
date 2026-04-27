@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useBudget } from "../contexts/BudgetContext";
 import DatePicker from "../components/DatePicker";
+import CategoryPicker from "../components/CategoryPicker";
 
 export default function RightSidebarTransactions({
   form,
@@ -11,25 +12,15 @@ export default function RightSidebarTransactions({
   categorias,
   setCategorias,
 }) {
-  const [categoriaInput, setCategoriaInput] = useState("");
-  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const { categorias, setCategorias } = useBudget();
 
   const getToday = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
 
-  // 🔥 sincroniza quando entra em edição
-  useEffect(() => {
-    setCategoriaInput(form.categoria || "");
-  }, [form.categoria]);
-
-  const categoriasFiltradas = categorias.filter((cat) =>
-    cat.toLowerCase().includes(categoriaInput.toLowerCase()),
-  );
-
   return (
-    <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto">
+    <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto space-y-3">
       <h2 className="text-lg font-semibold mb-4">
         {editandoId ? "Editar lançamento" : "Novo lançamento"}
       </h2>
@@ -43,70 +34,16 @@ export default function RightSidebarTransactions({
       />
 
       {/* CATEGORIA */}
-      <div className="relative flex flex-col gap-2 mt-2">
-        <input
-          placeholder="Categoria"
-          value={categoriaInput}
-          onChange={(e) => {
-            const value = e.target.value;
-            setCategoriaInput(value);
-            setMostrarSugestoes(true);
-            setForm({ ...form, categoria: value });
-          }}
-          onFocus={() => setMostrarSugestoes(true)}
-          onBlur={() => setTimeout(() => setMostrarSugestoes(false), 150)}
-          className="w-full p-2 bg-[#111827] rounded-lg"
-        />
-
-        {mostrarSugestoes && categoriaInput && (
-          <div className="absolute top-full w-full bg-[#1f2937] border border-white/10 rounded-xl mt-1 max-h-40 overflow-y-auto z-50">
-            {categoriasFiltradas.length > 0 ? (
-              categoriasFiltradas.map((cat) => (
-                <div
-                  key={cat}
-                  onClick={() => {
-                    setForm({ ...form, categoria: cat });
-                    setCategoriaInput(cat);
-                    setMostrarSugestoes(false);
-                  }}
-                  className="p-2 hover:bg-white/10 cursor-pointer text-sm"
-                >
-                  {cat}
-                </div>
-              ))
-            ) : (
-              <div className="p-2 text-sm text-gray-400">
-                Nenhuma encontrada
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* CRIAR NOVA */}
-        {categoriaInput &&
-          !categorias.some(
-            (c) => c.toLowerCase() === categoriaInput.toLowerCase(),
-          ) && (
-            <button
-              type="button"
-              onClick={() => {
-                const nova = categoriaInput.trim();
-                if (!nova) return;
-
-                setCategorias([...categorias, nova]);
-                setForm({ ...form, categoria: nova });
-                setMostrarSugestoes(false);
-              }}
-              className="text-xs text-emerald-400 text-left"
-            >
-              + Criar "{categoriaInput}"
-            </button>
-          )}
-      </div>
+      <CategoryPicker
+        categorias={categorias}
+        selected={form.categorias || []}
+        setSelected={(cats) => setForm({ ...form, categorias: cats })}
+        setCategorias={setCategorias}
+      />
 
       {/* VALOR */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg mt-2"
+        className="w-full p-2 bg-[#111827] rounded-lg "
         type="number"
         placeholder="Valor"
         value={form.valor}
@@ -120,7 +57,7 @@ export default function RightSidebarTransactions({
       />
 
       {/* TIPO */}
-      <div className="flex gap-2 bg-[#111827] p-1 rounded-xl mt-2 ">
+      <div className="flex gap-2 bg-[#111827] p-1 rounded-xl  ">
         {["receita", "despesa"].map((t) => (
           <button
             key={t}
@@ -140,7 +77,7 @@ export default function RightSidebarTransactions({
 
       {/* PAGAMENTO */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg mt-2 cursor-pointer"
+        className="w-full p-2 bg-[#111827] rounded-lg  cursor-pointer"
         value={form.formaPagamento}
         onChange={(e) => {
           const tipo = e.target.value;
@@ -166,7 +103,7 @@ export default function RightSidebarTransactions({
       {/* CARTÃO */}
       {["credito", "debito", "vale"].includes(form.formaPagamento) && (
         <select
-          className="w-full p-2 bg-[#111827] rounded-lg mt-2 cursor-pointer"
+          className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
           value={form.cartao}
           onChange={(e) => setForm({ ...form, cartao: e.target.value })}
         >
@@ -196,7 +133,7 @@ export default function RightSidebarTransactions({
       {/* PARCELAS */}
       {form.formaPagamento === "credito" && (
         <input
-          className="w-full p-2 bg-[#111827] rounded-lg mt-2 "
+          className="w-full p-2 bg-[#111827] rounded-lg "
           type="number"
           placeholder="Parcelas"
           value={form.parcelas}
@@ -207,7 +144,7 @@ export default function RightSidebarTransactions({
       {/* BOTÃO */}
       <button
         onClick={handleAdd}
-        className="w-full bg-emerald-400 text-black p-2 rounded-lg mt-3 hover:bg-emerald-300 cursor-pointer"
+        className="w-full bg-emerald-400 text-black p-2 rounded-lg hover:bg-emerald-300 cursor-pointer"
       >
         {editandoId ? "Salvar edição" : "Adicionar"}
       </button>
@@ -230,7 +167,7 @@ export default function RightSidebarTransactions({
               parcelas: "",
             });
           }}
-          className="w-full bg-gray-700 text-white p-2 rounded-lg mt-2"
+          className="w-full bg-gray-700 text-white p-2 rounded-lg "
         >
           Cancelar
         </button>

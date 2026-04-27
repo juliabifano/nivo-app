@@ -78,7 +78,7 @@ export default function DatePicker({ value, onChange }) {
       {/* INPUT */}
       <button
         onClick={() => setOpen(!open)}
-        className="bg-[#111827] p-2 rounded-lg w-full text-left hover:bg-white/10 transition mt-2 cursor-pointer"
+        className="bg-[#111827] p-2 rounded-lg w-full text-left hover:bg-white/10 transition cursor-pointer"
       >
         {formatDisplay(value)}
       </button>

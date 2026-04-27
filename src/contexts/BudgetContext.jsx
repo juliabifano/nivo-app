@@ -64,9 +64,12 @@ export function BudgetProvider({ children }) {
       descricao: tx.descricao,
       valor: Number(tx.valor),
       data: tx.data,
-      cartaoId: tx.cartao, // 👈 AQUI É O PONTO
+      cartaoId: tx.cartao,
       formaPagamento: tx.formaPagamento || "debito",
       tipo: tx.tipo || "despesa",
+
+      // 🔥 preparado para novo sistema
+      categorias: tx.categorias || (tx.categoria ? [tx.categoria] : []),
     };
 
     setTransactions((prev) => [...prev, normalized]);
@@ -91,7 +94,7 @@ export function BudgetProvider({ children }) {
   function getFatura(cardId, tipo) {
     return transactions
       .filter((t) => {
-        if (!t.cartaoId) return false; // 🔥 remove vazio
+        if (!t.cartaoId) return false;
 
         const pertenceCartao = String(t.cartaoId) === String(cardId);
         if (!pertenceCartao) return false;
@@ -171,6 +174,19 @@ export function BudgetProvider({ children }) {
     return {};
   }
 
+  // =========================
+  // CATEGORIAS
+  // =========================
+  function deleteCategoria(nome) {
+    setCategorias((prev) =>
+      prev.filter((cat) =>
+        typeof cat === "string"
+          ? cat.toLowerCase() !== nome.toLowerCase()
+          : cat.nome.toLowerCase() !== nome.toLowerCase(),
+      ),
+    );
+  }
+
   return (
     <BudgetContext.Provider
       value={{
@@ -192,6 +208,7 @@ export function BudgetProvider({ children }) {
         addTransaction,
         updateTransaction,
         deleteTransaction,
+        deleteCategoria,
 
         // helpers
         getTransacoesDoCartao,

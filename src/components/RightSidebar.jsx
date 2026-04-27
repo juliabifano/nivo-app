@@ -1,3 +1,5 @@
+import CategoryPicker from "./CategoryPicker";
+
 export default function RightSidebar({
   form,
   setForm,
@@ -33,6 +35,7 @@ export default function RightSidebar({
         {editingId ? "Editar" : "Adicionar"}
       </h2>
 
+      {/* DESCRIÇÃO */}
       <input
         className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
         placeholder="Descrição"
@@ -40,48 +43,15 @@ export default function RightSidebar({
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
       />
 
-      <select
-        className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
-        value={form.categoria}
-        onChange={(e) => setForm({ ...form, categoria: e.target.value })}
-      >
-        <option value="">Selecionar categoria</option>
+      {/* CATEGORIA */}
+      <CategoryPicker
+        categorias={categorias}
+        selected={form.categorias || []}
+        setSelected={(cats) => setForm({ ...form, categorias: cats })}
+        setCategorias={setCategorias}
+      />
 
-        {categorias.map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-
-        <option value="nova">+ Nova categoria</option>
-      </select>
-      {form.categoria === "nova" && (
-        <input
-          className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
-          placeholder="Nova categoria"
-          onBlur={(e) => {
-            const nova = e.target.value.trim();
-            if (!nova) return;
-
-            if (
-              !categorias.some(
-                (cat) => cat.toLowerCase() === nova.toLowerCase(),
-              )
-            ) {
-              setCategorias([...categorias, nova]);
-            }
-
-            setForm({ ...form, categoria: nova });
-          }}
-        />
-      )}
-
-      {categorias.length === 0 && (
-        <p className="text-xs text-gray-500 -mt-2 mb-2 italic">
-          Crie sua primeira categoria 👇
-        </p>
-      )}
-
+      {/* VALOR */}
       <input
         className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
         placeholder="Valor Mensal"
@@ -90,6 +60,7 @@ export default function RightSidebar({
         onChange={(e) => setForm({ ...form, valorMensal: e.target.value })}
       />
 
+      {/* TIPO */}
       <div className="flex gap-2 mb-3">
         <button
           onClick={() => setForm({ ...form, tipo: "receita" })}
@@ -112,6 +83,7 @@ export default function RightSidebar({
         </button>
       </div>
 
+      {/* MESES */}
       <div className="grid grid-cols-4 gap-2 mb-4">
         {months.map((m) => (
           <button
@@ -128,10 +100,12 @@ export default function RightSidebar({
         ))}
       </div>
 
+      {/* PREVIEW TOTAL */}
       <p className="text-emerald-400 font-semibold">
         Total: {formatCurrency(valor * meses)}
       </p>
 
+      {/* BOTÃO */}
       <button
         onClick={handleAdd}
         className="cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"

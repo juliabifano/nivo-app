@@ -258,8 +258,6 @@ export default function Transactions() {
         editandoId={editandoId}
         setEditandoId={setEditandoId}
         cartoes={cartoes}
-        categorias={categorias}
-        setCategorias={setCategorias}
       />
     </div>
   );
