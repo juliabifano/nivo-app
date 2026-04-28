@@ -32,7 +32,8 @@ export default function RightSidebarCards({
     if (!form.nome) return;
 
     if (form.tipo === "vale" && !form.saldoInicial) return;
-    if (form.tipo !== "vale" && !form.limite) return;
+
+    if (["credito", "multiplo"].includes(form.tipo) && !form.limite) return;
 
     const numeroLimpo = form.numeroCartao?.replace(/\s/g, "");
 
@@ -61,22 +62,28 @@ export default function RightSidebarCards({
       setEditandoCartao(null);
     } else {
       const novo = {
-        ...form,
         id: crypto.randomUUID(),
+        nome: form.nome,
+        banco: form.banco,
         numeroCartao: form.numeroCartao?.replace(/\s/g, ""),
-        tipo: form.tipo || "credito",
+        tipo: form.tipo,
 
-        // 🔥 separação correta por tipo
-        limite: form.tipo === "vale" ? undefined : Number(form.limite || 0),
+        limite: ["credito", "multiplo"].includes(form.tipo)
+          ? Number(form.limite || 0)
+          : undefined,
 
         saldoInicial:
           form.tipo === "vale" ? Number(form.saldoInicial || 0) : undefined,
 
         diaReset: form.tipo === "vale" ? Number(form.diaReset || 1) : undefined,
 
-        vencimento: form.tipo === "vale" ? undefined : Number(form.vencimento),
+        vencimento: ["credito", "multiplo"].includes(form.tipo)
+          ? Number(form.vencimento)
+          : undefined,
 
-        fechamento: form.tipo === "vale" ? undefined : Number(form.fechamento),
+        fechamento: ["credito", "multiplo"].includes(form.tipo)
+          ? Number(form.fechamento)
+          : undefined,
       };
 
       setCartoes([novo, ...cartoes]);
@@ -185,6 +192,7 @@ export default function RightSidebarCards({
             saldoInicial: tipo === "vale" ? form.saldoInicial : "",
             diaReset: tipo === "vale" ? form.diaReset : "",
             vencimento: tipo === "vale" ? "" : form.vencimento,
+            fechamento: tipo === "vale" ? "" : form.fechamento,
           });
         }}
       >
