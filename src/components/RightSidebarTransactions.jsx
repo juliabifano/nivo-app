@@ -31,7 +31,6 @@ export default function RightSidebarTransactions({
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
       />
 
-      {/* CATEGORIA */}
       <CategoryPicker
         categorias={categorias}
         selected={form.categorias || []}
