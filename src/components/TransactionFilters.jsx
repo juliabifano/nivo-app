@@ -25,6 +25,20 @@ export default function TransactionFilters({
       <div className="flex gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => {
+            setFiltroPeriodo("todos");
+            setDataSelecionada(null);
+          }}
+          className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer ${
+            filtroPeriodo === "todos"
+              ? "bg-emerald-400 text-black"
+              : "bg-[#111827] text-gray-300"
+          }`}
+        >
+          Todas
+        </button>
+
+        <button
+          onClick={() => {
             setFiltroPeriodo("dia");
             setDataSelecionada(null);
           }}

@@ -63,12 +63,20 @@ export default function RightSidebarCards({
       const novo = {
         ...form,
         id: crypto.randomUUID(),
-        limite: Number(form.limite || 0),
-        saldoInicial: Number(form.saldoInicial || 0),
-        fechamento: Number(form.fechamento), // 👈 AQUI
-        diaReset: Number(form.diaReset),
         numeroCartao: form.numeroCartao?.replace(/\s/g, ""),
         tipo: form.tipo || "credito",
+
+        // 🔥 separação correta por tipo
+        limite: form.tipo === "vale" ? undefined : Number(form.limite || 0),
+
+        saldoInicial:
+          form.tipo === "vale" ? Number(form.saldoInicial || 0) : undefined,
+
+        diaReset: form.tipo === "vale" ? Number(form.diaReset || 1) : undefined,
+
+        vencimento: form.tipo === "vale" ? undefined : Number(form.vencimento),
+
+        fechamento: form.tipo === "vale" ? undefined : Number(form.fechamento),
       };
 
       setCartoes([novo, ...cartoes]);
@@ -240,7 +248,6 @@ export default function RightSidebarCards({
         </>
       )}
 
-      
       {/* PREVIEW 🔥 */}
       {form.banco && (
         <div

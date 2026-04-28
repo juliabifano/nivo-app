@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { getBank } from "../../data/banks";
+import { useBudget } from "../../contexts/BudgetContext";
 
 export default function CardItem({
   c,
@@ -22,11 +23,13 @@ export default function CardItem({
 
   const gasto = getGasto(c.id);
 
-  let limite = Number(c.limite || 0);
-  let saldo = Number(c.saldo || 0);
+  const { getCardSummary } = useBudget();
+  const summary = getCardSummary(c);
 
-  let disponivel = 0;
-  let percent = 0;
+  let limite = summary.limite || 0;
+  let saldo = summary.saldoInicial || 0;
+  let disponivel = summary.disponivel || 0;
+  let percent = summary.percent || 0;
 
   if (c.tipo === "credito" || c.tipo === "multiplo") {
     disponivel = limite - gasto;

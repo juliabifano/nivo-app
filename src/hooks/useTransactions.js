@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useBudget } from "../contexts/BudgetContext";
 
 /* =========================
    HELPERS
@@ -44,6 +45,8 @@ export function useTransactions(transactions = []) {
   const [filtroPeriodo, setFiltroPeriodo] = useState("dia");
   const [dataSelecionada, setDataSelecionada] = useState(getToday());
 
+  const { addTransaction, updateTransaction, deleteTransaction } = useBudget();
+
   /* =========================
      FORM
   ========================= */
@@ -80,15 +83,51 @@ export function useTransactions(transactions = []) {
   const handleAdd = () => {
     if (!form.descricao || !form.valor || !form.data) return;
 
-    const newTransaction = {
-      ...form,
-      id: crypto.randomUUID(),
-      valor: Number(form.valor),
-    };
-
-    transactions.unshift?.(newTransaction);
+    if (editandoId) {
+      updateTransaction(editandoId, {
+        ...form,
+        valor: Number(form.valor),
+      });
+    } else {
+      addTransaction({
+        ...form,
+        id: crypto.randomUUID(),
+        valor: Number(form.valor),
+      });
+    }
 
     resetForm();
+  };
+
+  /* =========================
+     EDIT
+  ========================= */
+
+  const handleEdit = (t) => {
+    setEditandoId(t.id);
+
+    setForm({
+      descricao: t.descricao,
+      categoria: t.categorias?.[0] || "",
+      valor: t.valor,
+      tipo: t.tipo,
+      data: t.data,
+      formaPagamento: t.formaPagamento,
+      cartao: t.cartaoId,
+      parcelas: "",
+    });
+  };
+
+  /* =========================
+     DELETE
+  ========================= */
+
+  const handleDelete = (id) => {
+    deleteTransaction(id);
+  };
+
+  const restoreTransaction = (t) => {
+    addTransaction(t);
   };
 
   /* =========================
@@ -131,6 +170,14 @@ export function useTransactions(transactions = []) {
       let matchPeriodo = true;
 
       const dataStr = t.data ? String(t.data) : "";
+
+      /* =========================
+         TODAS
+      ========================= */
+
+      if (filtroPeriodo === "todos") {
+        matchPeriodo = true;
+      }
 
       /* =========================
          HOJE
@@ -224,5 +271,8 @@ export function useTransactions(transactions = []) {
     editandoId,
     setEditandoId,
     resetForm,
+    handleEdit,
+    handleDelete,
+    restoreTransaction,
   };
 }

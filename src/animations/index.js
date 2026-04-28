@@ -34,10 +34,11 @@ export const transitions = {
 
 // 🔹 Fade simples
 export const fade = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 0, y: 5 },
   show: {
     opacity: 1,
-    transition: transitions.normal,
+    y: 0,
+    transition: { duration: 0.2 },
   },
 };
 

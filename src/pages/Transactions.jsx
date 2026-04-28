@@ -33,6 +33,9 @@ export default function Transactions() {
     handleAdd,
     editandoId,
     setEditandoId,
+    handleEdit,
+    handleDelete,
+    restoreTransaction,
   } = useTransactions(transactions);
 
   return (
@@ -60,7 +63,12 @@ export default function Transactions() {
           />
 
           {/* LISTA */}
-          <TransactionList transactions={filteredTransactions} />
+          <TransactionList
+            transactions={filteredTransactions}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={restoreTransaction}
+          />
         </div>
       </div>
 
