@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useBudget } from "../contexts/BudgetContext";
 import { motion, AnimatePresence } from "framer-motion";
 import RightSidebarCards from "../components/RightSidebarCards";
 import CardDetailsModal from "../components/cards/CardDetailsModal";
 import CardItem from "../components/cards/CardItem";
 import DeleteCardModal from "../components/cards/DeleteCardModal";
-
+import { useCards } from "../contexts/CardContext";
+import { useTransactions } from "../contexts/TransactionContext";
 import {
   generateInvoice,
   groupByDate,
@@ -13,7 +13,8 @@ import {
 } from "../utils/invoices";
 
 export default function Cards() {
-  const { cartoes = [], setCartoes, transactions = [] } = useBudget();
+  const { cards, remove } = useCards();
+ const { transactions = [] } = useTransactions();
 
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
@@ -97,7 +98,7 @@ export default function Cards() {
 
         <div className="flex flex-wrap gap-6">
           <div className="flex flex-wrap gap-6">
-            {cartoes.map((c) => (
+            {cards.map((c) => (
               <CardItem
                 key={c.id}
                 c={c}
@@ -105,8 +106,6 @@ export default function Cards() {
                 setSelected={setSelected}
                 setEditandoCartao={setEditandoCartao}
                 setConfirmDelete={setConfirmDelete}
-                getGasto={getGasto}
-                getLastResetDate={getLastResetDate}
                 formatCurrency={formatCurrency}
                 formatCardNumber={formatCardNumber}
               />
@@ -147,8 +146,7 @@ export default function Cards() {
       <DeleteCardModal
         confirmDelete={confirmDelete}
         setConfirmDelete={setConfirmDelete}
-        cartoes={cartoes}
-        setCartoes={setCartoes}
+        onDelete={remove}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useBudget } from "../contexts/BudgetContext";
+import { createTransaction } from "../core/transactions/transactionFactory";
 
 /* =========================
    HELPERS
@@ -89,11 +90,9 @@ export function useTransactions(transactions = []) {
         valor: Number(form.valor),
       });
     } else {
-      addTransaction({
-        ...form,
-        id: crypto.randomUUID(),
-        valor: Number(form.valor),
-      });
+      const novaTransacao = createTransaction(form);
+
+      addTransaction(novaTransacao);
     }
 
     resetForm();
@@ -108,7 +107,7 @@ export function useTransactions(transactions = []) {
 
     setForm({
       descricao: t.descricao,
-      categoria: t.categorias?.[0] || "",
+      categoria: t.categoria || "",
       valor: t.valor,
       tipo: t.tipo,
       data: t.data,
@@ -163,7 +162,7 @@ export function useTransactions(transactions = []) {
       const matchCartao = !filtroCartao || t.cartaoId === filtroCartao;
 
       const matchCategoria =
-        !categoriaFiltro || t.categorias?.includes(categoriaFiltro);
+        !categoriaFiltro || t.categoria === categoriaFiltro;
 
       const dataItem = parseLocalDate(t.data);
 

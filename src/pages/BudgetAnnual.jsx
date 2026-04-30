@@ -5,18 +5,23 @@ import NubankBar from "../components/NubankBar";
 import SaldoCard from "../components/SaldoCard";
 import DeleteIcon from "../assets/icons/Bin.svg?react";
 import EditIcon from "../assets/icons/Edit.svg?react";
-import { useBudget } from "../contexts/BudgetContext";
+import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
+import { useCategories } from "../contexts/CategoryContext";
+import { getAnnualBudgetSnapshot } from "../utils/getAnnualBudgetSnapshot";
 
 export default function BudgetAnnual() {
-  const { items = [], setItems, categorias, setCategorias } = useBudget();
+  const { items = [], add, update, remove } = useBudgetAnnual();
+  const { categories } = useCategories();
 
   const [form, setForm] = useState({
     descricao: "",
-    categoria: "",
+    categoriaId: "",
     valorMensal: "",
     tipo: "despesa",
     meses: [],
   });
+
+  const [editingId, setEditingId] = useState(null);
 
   const months = [
     "jan",
@@ -44,34 +49,29 @@ export default function BudgetAnnual() {
     });
   };
 
-  const [editingId, setEditingId] = useState(null);
+  // =========================
+  // SNAPSHOT (ÚNICA FONTE DE VERDADE)
+  // =========================
+  const budget = getAnnualBudgetSnapshot(items, categories);
 
+  const { receitas, despesas, saldo, receitasData, despesasData } = budget;
+
+  // =========================
+  // CRUD
+  // =========================
   const handleAdd = () => {
     if (!form.descricao || !form.valorMensal) return;
 
     if (editingId) {
-      const updated = items.map((item) =>
-        item.id === editingId
-          ? { ...form, id: editingId, valorMensal: Number(form.valorMensal) }
-          : item,
-      );
-
-      setItems(updated);
+      update(editingId, form);
       setEditingId(null);
     } else {
-      setItems([
-        ...items,
-        {
-          ...form,
-          id: crypto.randomUUID(),
-          valorMensal: Number(form.valorMensal),
-        },
-      ]);
+      add(form);
     }
 
     setForm({
       descricao: "",
-      categoria: "",
+      categoriaId: "",
       valorMensal: "",
       tipo: "despesa",
       meses: [],
@@ -79,51 +79,8 @@ export default function BudgetAnnual() {
   };
 
   const handleDelete = (id) => {
-    setItems(items.filter((item) => item.id !== id));
+    remove(id);
   };
-
-  const calculateTotals = () => {
-    let receitas = 0;
-    let despesas = 0;
-
-    items.forEach((item) => {
-      const valor = Number(item.valorMensal) || 0;
-
-      const meses = Array.isArray(item.meses) ? item.meses.length : 0;
-      const total = valor * meses;
-
-      if (item.tipo === "receita") receitas += total;
-      else despesas += total;
-    });
-
-    return { receitas, despesas, saldo: receitas - despesas };
-  };
-
-  const { receitas, despesas, saldo } = calculateTotals();
-
- const getCategoryDataByType = (tipo) => {
-  const data = {};
-
-  items.forEach((item) => {
-    if (item.tipo !== tipo) return;
-
-    const valor = Number(item.valorMensal) || 0;
-    const meses = Array.isArray(item.meses) ? item.meses.length : 0;
-    const total = valor * meses;
-
-    const categoria = item.categoria || "Sem categoria";
-
-    data[categoria] = (data[categoria] || 0) + total;
-  });
-
-  return Object.entries(data).map(([name, value]) => ({
-    name,
-    value,
-  }));
-};
-
-  const despesasData = getCategoryDataByType("despesa");
-  const receitasData = getCategoryDataByType("receita");
 
   const formatCurrency = (value) =>
     value.toLocaleString("pt-BR", {
@@ -154,8 +111,9 @@ export default function BudgetAnnual() {
             {/* HEADER */}
             <div>
               <h1 className="text-2xl font-semibold mb-4">Orçamento Anual</h1>
+
               <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
-                <p className="text-gray-400 text-sm ">Saldo Anual</p>
+                <p className="text-gray-400 text-sm">Saldo Anual</p>
 
                 <SaldoCard receitas={receitas} despesas={despesas} />
                 <NubankBar receitas={receitas} despesas={despesas} />
@@ -165,18 +123,16 @@ export default function BudgetAnnual() {
             {/* GRÁFICOS */}
             <div>
               <div className="grid grid-cols-2 gap-6">
-                {/* RECEITAS */}{" "}
-                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72 h-72">
-                  {" "}
-                  <p className="text-sm text-gray-400 mb-2">Receitas</p>{" "}
+                {/* RECEITAS */}
+                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72">
+                  <p className="text-sm text-gray-400 mb-2">Receitas</p>
+
                   {receitasData.length === 0 ? (
                     <p className="text-gray-500 text-center mt-16">Sem dados</p>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      {" "}
                       <PieChart>
-                        {receitasData.length > 0 &&
-                          renderCenterLabel(receitas, "#3EF2C2")}
+                        {renderCenterLabel(receitas, "#3EF2C2")}
                         <Pie
                           data={receitasData}
                           innerRadius="80%"
@@ -186,7 +142,6 @@ export default function BudgetAnnual() {
                           dataKey="value"
                           nameKey="name"
                         >
-                          {" "}
                           {receitasData.map((_, i) => (
                             <Cell
                               key={i}
@@ -196,25 +151,24 @@ export default function BudgetAnnual() {
                                 ]
                               }
                             />
-                          ))}{" "}
-                        </Pie>{" "}
-                        <Tooltip formatter={(v) => formatCurrency(v)} />{" "}
-                      </PieChart>{" "}
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v) => formatCurrency(v)} />
+                      </PieChart>
                     </ResponsiveContainer>
-                  )}{" "}
+                  )}
                 </div>
-                {/* DESPESAS */}{" "}
-                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72 h-72">
-                  {" "}
-                  <p className="text-sm text-gray-400 mb-2">Despesas</p>{" "}
+
+                {/* DESPESAS */}
+                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72">
+                  <p className="text-sm text-gray-400 mb-2">Despesas</p>
+
                   {despesasData.length === 0 ? (
                     <p className="text-gray-500 text-center mt-16">Sem dados</p>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      {" "}
                       <PieChart>
-                        {despesasData.length > 0 &&
-                          renderCenterLabel(despesas, "#FF7A6B")}
+                        {renderCenterLabel(despesas, "#FF7A6B")}
                         <Pie
                           data={despesasData}
                           innerRadius="80%"
@@ -224,7 +178,6 @@ export default function BudgetAnnual() {
                           dataKey="value"
                           nameKey="name"
                         >
-                          {" "}
                           {despesasData.map((_, i) => (
                             <Cell
                               key={i}
@@ -234,14 +187,14 @@ export default function BudgetAnnual() {
                                 ]
                               }
                             />
-                          ))}{" "}
-                        </Pie>{" "}
-                        <Tooltip formatter={(v) => formatCurrency(v)} />{" "}
-                      </PieChart>{" "}
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v) => formatCurrency(v)} />
+                      </PieChart>
                     </ResponsiveContainer>
-                  )}{" "}
-                </div>{" "}
-              </div>{" "}
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* LISTA */}
@@ -252,62 +205,63 @@ export default function BudgetAnnual() {
                 {items.length === 0 ? (
                   <p className="text-gray-400">Nenhum lançamento ainda</p>
                 ) : (
-                  items.map((item) => {
-                    const valor = Number(item.valorMensal) || 0;
+                  items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition"
+                    >
+                      <div>
+                        <p className="font-medium">{item.descricao}</p>
 
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition"
-                      >
-                        <div>
-                          <p className="font-medium">{item.descricao}</p>
-                          <p className="text-sm text-gray-400">
-                            {item.categoria || "Sem categoria"}
-                          </p>
+                        <p className="text-sm text-gray-400">
+                          {categories.find((c) => c.id === item.categoriaId)
+                            ?.nome || "Sem categoria"}
+                        </p>
 
-                          <div className="flex gap-1 flex-wrap mt-1">
-                            {item.meses?.map((m) => (
-                              <span
-                                key={m}
-                                className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300"
-                              >
-                                {m.toUpperCase()}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <p
-                            className={`font-medium ${
-                              item.tipo === "receita"
-                                ? "text-emerald-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {formatCurrency(valor)}
-                            <span className="text-xs text-gray-400 ml-1">
-                              /mês
+                        <div className="flex gap-1 flex-wrap mt-1">
+                          {item.meses?.map((m) => (
+                            <span
+                              key={m}
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300"
+                            >
+                              {m.toUpperCase()}
                             </span>
-                          </p>
-
-                          <button
-                            onClick={() => {
-                              setForm({ ...item, meses: item.meses || [] });
-                              setEditingId(item.id);
-                            }}
-                          >
-                            <EditIcon className="w-5 h-5 cursor-pointer" />
-                          </button>
-
-                          <button onClick={() => handleDelete(item.id)}>
-                            <DeleteIcon className="w-5 h-5 cursor-pointer" />
-                          </button>
+                          ))}
                         </div>
                       </div>
-                    );
-                  })
+
+                      <div className="flex items-center gap-4">
+                        <p
+                          className={`font-medium ${
+                            item.tipo === "receita"
+                              ? "text-emerald-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          {formatCurrency(item.valorMensal)}
+                          <span className="text-xs text-gray-400 ml-1">
+                            /mês
+                          </span>
+                        </p>
+
+                        <button
+                          onClick={() => {
+                            setForm({
+                              ...item,
+                              meses: item.meses || [],
+                            });
+                            setEditingId(item.id);
+                          }}
+                        >
+                          <EditIcon className="w-5 h-5" />
+                        </button>
+
+                        <button onClick={() => handleDelete(item.id)}>
+                          <DeleteIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
@@ -322,8 +276,6 @@ export default function BudgetAnnual() {
           months={months}
           toggleMonth={toggleMonth}
           editingId={editingId}
-          categorias={categorias}
-          setCategorias={setCategorias}
           formatCurrency={formatCurrency}
         />
       </div>

@@ -7,8 +7,6 @@ export default function RightSidebar({
   months,
   toggleMonth,
   editingId,
-  categorias,
-  setCategorias,
   formatCurrency,
 }) {
   if (!form) return null;
@@ -19,23 +17,23 @@ export default function RightSidebar({
   return (
     <div
       className="
-    fixed right-4 top-5
-    mb-5 mr-5
-    h-[calc(100vh-40px)]
-    w-[320px]
-    bg-[#0B0F1A]/70
-    p-5
-    space-y-3
-    rounded-2xl
-    shadow-xl
-    border border-gray-800
-    backdrop-blur-md"
+        fixed right-4 top-5
+        mb-5 mr-5
+        h-[calc(100vh-40px)]
+        w-[320px]
+        bg-[#0B0F1A]/70
+        p-5
+        space-y-3
+        rounded-2xl
+        shadow-xl
+        border border-gray-800
+        backdrop-blur-md
+      "
     >
       <h2 className="text-lg font-semibold mb-4">
         {editingId ? "Editar" : "Adicionar"}
       </h2>
 
-      {/* DESCRIÇÃO */}
       <input
         className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
         placeholder="Descrição"
@@ -43,15 +41,11 @@ export default function RightSidebar({
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
       />
 
-      {/* CATEGORIA */}
       <CategoryPicker
-        categorias={categorias}
-        selected={form.categorias || []}
-        setSelected={(cats) => setForm({ ...form, categorias: cats })}
-        setCategorias={setCategorias}
+        selected={form.categoriaId}
+        onChange={(id) => setForm({ ...form, categoriaId: id })}
       />
 
-      {/* VALOR */}
       <input
         className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
         placeholder="Valor Mensal"
@@ -60,9 +54,9 @@ export default function RightSidebar({
         onChange={(e) => setForm({ ...form, valorMensal: e.target.value })}
       />
 
-      {/* TIPO */}
       <div className="flex gap-2 mb-3">
         <button
+          type="button"
           onClick={() => setForm({ ...form, tipo: "receita" })}
           className={`flex-1 p-2 rounded cursor-pointer ${
             form.tipo === "receita"
@@ -74,6 +68,7 @@ export default function RightSidebar({
         </button>
 
         <button
+          type="button"
           onClick={() => setForm({ ...form, tipo: "despesa" })}
           className={`flex-1 p-2 rounded cursor-pointer ${
             form.tipo === "despesa" ? "bg-red-400 text-black" : "bg-gray-800"
@@ -83,11 +78,11 @@ export default function RightSidebar({
         </button>
       </div>
 
-      {/* MESES */}
       <div className="grid grid-cols-4 gap-2 mb-4">
         {months.map((m) => (
           <button
             key={m}
+            type="button"
             onClick={() => toggleMonth(m)}
             className={`p-2 text-xs rounded cursor-pointer ${
               (form.meses || []).includes(m)
@@ -95,18 +90,17 @@ export default function RightSidebar({
                 : "bg-[#111827]"
             }`}
           >
-            {m}
+            {m.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* PREVIEW TOTAL */}
       <p className="text-emerald-400 font-semibold">
         Total: {formatCurrency(valor * meses)}
       </p>
 
-      {/* BOTÃO */}
       <button
+        type="button"
         onClick={handleAdd}
         className="cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"
       >

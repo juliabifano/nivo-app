@@ -1,42 +1,32 @@
-import { useBudget } from "../contexts/BudgetContext";
-import { useTransactions } from "../hooks/useTransactions";
-
-import TransactionFilters from "../components/TransactionFilters";
+import { useState } from "react";
+import { useTransactions } from "../contexts/TransactionContext";
 import TransactionList from "../components/TransactionList";
 import RightSidebarTransactions from "../components/RightSidebarTransactions";
+import { filterTransactions } from "../core/selectors/transactionSelectors";
+import { mapTransactionsWithCategory } from "../core/selectors/categorySelectors";
+import { useCategories } from "../contexts/CategoryContext";
 
 export default function Transactions() {
-  const { transactions = [], categorias = [], cartoes = [] } = useBudget();
+  const { transactions, add, update, remove } = useTransactions();
+  const { categories } = useCategories();
 
-  const {
-    filteredTransactions,
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
-    filtroPagamento,
-    setFiltroPagamento,
+  const [filters, setFilters] = useState({
+    tipo: "todos",
+    categoriaId: "",
+  });
 
-    filtroCartao,
-    setFiltroCartao,
+  const filtradas = filterTransactions(transactions, filters);
 
-    categoriaFiltro,
-    setCategoriaFiltro,
+  const ordenadas = [...filtradas].sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.data);
+    const dateB = new Date(b.createdAt || b.data);
 
-    filtroPeriodo,
-    setFiltroPeriodo,
+    return dateB - dateA;
+  });
 
-    dataSelecionada,
-    setDataSelecionada,
-
-    setFilterRange,
-
-    form,
-    setForm,
-    handleAdd,
-    editandoId,
-    setEditandoId,
-    handleEdit,
-    handleDelete,
-    restoreTransaction,
-  } = useTransactions(transactions);
+  const prontas = mapTransactionsWithCategory(ordenadas, categories);
 
   return (
     <div className="flex h-screen overflow-hidden text-white">
@@ -45,41 +35,52 @@ export default function Transactions() {
         <div className="w-full max-w-3xl flex flex-col gap-6">
           <h1 className="text-2xl font-semibold">Lançamentos</h1>
 
-          {/* FILTROS */}
-          <TransactionFilters
-            categorias={categorias}
-            cartoes={cartoes}
-            filtroPagamento={filtroPagamento}
-            setFiltroPagamento={setFiltroPagamento}
-            filtroCartao={filtroCartao}
-            setFiltroCartao={setFiltroCartao}
-            categoriaFiltro={categoriaFiltro}
-            setCategoriaFiltro={setCategoriaFiltro}
-            filtroPeriodo={filtroPeriodo}
-            setFiltroPeriodo={setFiltroPeriodo}
-            dataSelecionada={dataSelecionada}
-            setDataSelecionada={setDataSelecionada}
-            setFilterRange={setFilterRange}
-          />
+          <div className="flex gap-2">
+            {["todos", "receita", "despesa"].map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilters({ ...filters, tipo: t })}
+                className={`px-3 py-1 rounded-lg ${
+                  filters.tipo === t
+                    ? "bg-emerald-400 text-black"
+                    : "bg-[#1f2937] text-gray-300"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          <select
+            value={filters.categoriaId}
+            onChange={(e) =>
+              setFilters({ ...filters, categoriaId: e.target.value })
+            }
+          >
+            <option value="">Todas categorias</option>
+
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
 
           {/* LISTA */}
           <TransactionList
-            transactions={filteredTransactions}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onRestore={restoreTransaction}
+            transactions={prontas}
+            onDelete={remove}
+            onEdit={setEditingTransaction}
           />
         </div>
       </div>
 
       {/* SIDEBAR */}
       <RightSidebarTransactions
-        form={form}
-        setForm={setForm}
-        handleAdd={handleAdd}
-        editandoId={editandoId}
-        setEditandoId={setEditandoId}
-        cartoes={cartoes}
+        onAdd={add}
+        onUpdate={update}
+        editingTransaction={editingTransaction}
+        setEditingTransaction={setEditingTransaction}
       />
     </div>
   );

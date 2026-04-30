@@ -4,6 +4,9 @@ import { getBank } from "../../data/banks";
 import CardSummary from "./CardSummary";
 import CardTransactions from "./CardTransactions";
 import CardInvoice from "./CardInvoice";
+import { getCardFinance } from "../../utils/financeEngine";
+import { getCardConfig } from "../../data/cardTypes";
+import { useCards } from "../../contexts/CardContext";
 import {
   staggerContainer,
   listItem,
@@ -35,13 +38,15 @@ export default function CardDetailsModal(props) {
 
   if (!selected) return null;
 
-  const temFatura = ["credito", "multiplo"].includes(selected.tipo);
+  const config = getCardConfig(selected.tipo);
+  const temFatura = config.temFatura;
 
   useEffect(() => {
     if (!temFatura && tab === "fatura") {
       setTab("resumo");
     }
-  }, [selected]);
+  }, [selected, temFatura, tab]);
+  
 
   return (
     <AnimatePresence>
@@ -63,89 +68,75 @@ export default function CardDetailsModal(props) {
         >
           <h2 className="text-white text-xl font-semibold">{selected.nome}</h2>
 
-          {(() => {
-            const gastoSelecionado = getGasto(selected.id);
-            const limite = Number(selected.limite || 0);
-            const saldo = Number(selected.saldo || 0);
+          {/* RESUMO FINANCEIRO */}
+          {config.mostrarResumoFinanceiro &&
+            (() => {
+              const finance = getCardFinance({
+                cartao: selected,
+                transactions,
+                getGasto,
+                getSaldoConta: () => 0,
+              });
 
-            let label1 = "";
-            let valor1 = 0;
+              if (!config.mostrarResumoFinanceiro) return null;
 
-            let label2 = "";
-            let valor2 = 0;
+              let label1 = "";
+              let valor1 = 0;
 
-            let label3 = "";
-            let valor3 = 0;
+              let label2 = "";
+              let valor2 = 0;
 
-            if (selected.tipo === "credito" || selected.tipo === "multiplo") {
-              label1 = "Limite";
-              valor1 = limite;
+              let label3 = "";
+              let valor3 = 0;
 
-              label2 = "Utilizado";
-              valor2 = gastoSelecionado;
+              // CRÉDITO / MÚLTIPLO
+              if (config.temFatura) {
+                label1 = "Limite";
+                valor1 = finance.limite;
 
-              label3 = "Disponível";
-              valor3 = limite - gastoSelecionado;
-            }
+                label2 = "Fatura atual";
+                valor2 = finance.fatura;
 
-            if (selected.tipo === "debito") {
-              label1 = "Saldo atual";
-              valor1 = saldo;
+                label3 = "Disponível";
+                valor3 = finance.disponivel;
+              }
 
-              label2 = "Gastos no mês";
-              valor2 = gastoSelecionado;
+              // VALE
+              if (selected.tipo === "vale") {
+                label1 = "Saldo inicial";
+                valor1 = finance.saldoInicial;
 
-              label3 = "Restante";
-              valor3 = saldo - gastoSelecionado;
-            }
+                label2 = "Utilizado";
+                valor2 = finance.gastos;
 
-            if (selected.tipo === "vale") {
-              const lastReset = getLastResetDate(selected.diaReset);
+                label3 = "Restante";
+                valor3 = finance.disponivel;
+              }
+              return (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="bg-white/10 p-3 rounded-lg">
+                    <p className="text-xs text-gray-300">{label1}</p>
+                    <p className="text-white font-semibold">
+                      {formatCurrency(valor1)}
+                    </p>
+                  </div>
 
-              const gastoPeriodo = transactions
-                .filter((t) => {
-                  if (t.cartaoId !== selected.id) return false;
+                  <div className="bg-white/10 p-3 rounded-lg">
+                    <p className="text-xs text-gray-300">{label2}</p>
+                    <p className="text-red-400 font-semibold">
+                      {formatCurrency(valor2)}
+                    </p>
+                  </div>
 
-                  const data = new Date(t.data);
-                  return lastReset ? data >= lastReset : true;
-                })
-                .reduce((acc, t) => acc + Number(t.valor), 0);
-
-              label1 = "Saldo";
-              valor1 = saldo;
-
-              label2 = "Utilizado";
-              valor2 = gastoPeriodo;
-
-              label3 = "Restante";
-              valor3 = saldo - gastoPeriodo;
-            }
-
-            return (
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="bg-white/10 p-3 rounded-lg">
-                  <p className="text-xs text-gray-300">{label1}</p>
-                  <p className="text-white font-semibold">
-                    {formatCurrency(valor1)}
-                  </p>
+                  <div className="bg-white/10 p-3 rounded-lg">
+                    <p className="text-xs text-gray-300">{label3}</p>
+                    <p className="text-emerald-400 font-semibold">
+                      {formatCurrency(valor3)}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="bg-white/10 p-3 rounded-lg">
-                  <p className="text-xs text-gray-300">{label2}</p>
-                  <p className="text-red-400 font-semibold">
-                    {formatCurrency(valor2)}
-                  </p>
-                </div>
-
-                <div className="bg-white/10 p-3 rounded-lg">
-                  <p className="text-xs text-gray-300">{label3}</p>
-                  <p className="text-emerald-400 font-semibold">
-                    {formatCurrency(valor3)}
-                  </p>
-                </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           <div className="flex flex-col gap-4">
             {/* HEADER + AÇÕES */}

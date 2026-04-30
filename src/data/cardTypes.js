@@ -1,40 +1,46 @@
 export const CARD_TYPES = {
   credito: {
-    label: "Crédito",
-    hasLimit: true,
-    hasDueDate: true,
-    hasAccount: false,
-    hasBalance: false,
-    hasFatura: true,
-  },
+    temFatura: true,
+    mostraResumo: true,
+    mostraLimite: true,
+    usaFaturaNoResumo: true,
 
-  debito: {
-    label: "Débito",
-    hasLimit: false,
-    hasDueDate: false,
-    hasAccount: true,
-    hasBalance: true,
-    hasFatura: false,
+    // 🆕 comportamento financeiro (novo padrão)
+    calculaFatura: true,
+    calculaSaldo: false,
   },
 
   multiplo: {
-    label: "Múltiplo",
-    hasLimit: true,
-    hasDueDate: true,
-    hasAccount: true,
-    hasBalance: false,
-    hasFatura: true,
+    temFatura: true,
+    mostraResumo: true,
+    mostraLimite: true,
+    usaFaturaNoResumo: true,
+
+    calculaFatura: true,
+    calculaSaldo: false,
+  },
+
+  debito: {
+    temFatura: false,
+    mostraResumo: false,
+    mostraLimite: false,
+    usaFaturaNoResumo: false,
+
+    calculaFatura: false,
+    calculaSaldo: true,
   },
 
   vale: {
-    label: "Vale",
-    hasLimit: false,
-    hasDueDate: false,
-    hasAccount: false,
-    hasBalance: true,
-    hasFatura: false,
+    temFatura: false,
+    mostraResumo: true,
+    mostraLimite: false,
+    usaFaturaNoResumo: false,
+
+    calculaFatura: false,
+    calculaSaldo: true,
   },
 };
 
-export const getCardType = (type) =>
-  CARD_TYPES[type] || CARD_TYPES.credito;
+export function getCardConfig(tipo) {
+  return CARD_TYPES[tipo] ?? CARD_TYPES.credito;
+}

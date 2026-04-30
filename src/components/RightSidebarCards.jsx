@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { useBudget } from "../contexts/BudgetContext";
+import { useCards } from "../contexts/CardContext";
 import { BANKS, getBank } from "../data/banks";
+import { useAccounts } from "../contexts/AccountContext";
 
 export default function RightSidebarCards({
   editandoCartao,
   setEditandoCartao,
 }) {
-  const { cartoes = [], setCartoes } = useBudget();
+  const { cards, add, update } = useCards();
+  const { accounts } = useAccounts();
 
   const [form, setForm] = useState({
     nome: "",
@@ -17,14 +19,24 @@ export default function RightSidebarCards({
     fechamento: "",
     tipo: "credito",
     diaReset: "",
+    accountId: "",
   });
 
   useEffect(() => {
     if (editandoCartao) {
-      setForm((prev) => ({
-        ...prev,
-        ...editandoCartao,
-      }));
+      setForm({
+        nome: editandoCartao.nome || "",
+        banco: editandoCartao.banco || "",
+        numeroCartao: editandoCartao.numeroCartao || "",
+        tipo: editandoCartao.tipo || "credito",
+
+        limite: editandoCartao.limite || "",
+        saldoInicial: editandoCartao.saldo || "",
+        vencimento: editandoCartao.vencimento || "",
+        fechamento: editandoCartao.fechamento || "",
+        diaReset: editandoCartao.diaReset || "",
+        accountId: editandoCartao.accountId || "",
+      });
     }
   }, [editandoCartao]);
 
@@ -42,51 +54,35 @@ export default function RightSidebarCards({
       return;
     }
 
-    if (editandoCartao) {
-      setCartoes(
-        cartoes.map((c) =>
-          c.id === editandoCartao.id
-            ? {
-                ...form,
-                limite: form.tipo === "vale" ? undefined : Number(form.limite),
-                saldoInicial:
-                  form.tipo === "vale" ? Number(form.saldoInicial) : undefined,
-                vencimento: Number(form.vencimento),
-                fechamento: Number(form.fechamento), // 👈 AQUI
-                diaReset: Number(form.diaReset),
-              }
-            : c,
-        ),
-      );
+    const payload = {
+      nome: form.nome,
+      banco: form.banco,
+      numeroCartao: numeroLimpo,
+      tipo: form.tipo,
+      accountId: form.accountId || null,
 
+      limite: ["credito", "multiplo"].includes(form.tipo)
+        ? Number(form.limite || 0)
+        : undefined,
+
+      saldo: form.tipo === "vale" ? Number(form.saldoInicial || 0) : undefined,
+
+      diaReset: form.tipo === "vale" ? Number(form.diaReset || 1) : undefined,
+
+      vencimento: ["credito", "multiplo"].includes(form.tipo)
+        ? Number(form.vencimento)
+        : undefined,
+
+      fechamento: ["credito", "multiplo"].includes(form.tipo)
+        ? Number(form.fechamento)
+        : undefined,
+    };
+
+    if (editandoCartao) {
+      update(editandoCartao.id, payload);
       setEditandoCartao(null);
     } else {
-      const novo = {
-        id: crypto.randomUUID(),
-        nome: form.nome,
-        banco: form.banco,
-        numeroCartao: form.numeroCartao?.replace(/\s/g, ""),
-        tipo: form.tipo,
-
-        limite: ["credito", "multiplo"].includes(form.tipo)
-          ? Number(form.limite || 0)
-          : undefined,
-
-        saldoInicial:
-          form.tipo === "vale" ? Number(form.saldoInicial || 0) : undefined,
-
-        diaReset: form.tipo === "vale" ? Number(form.diaReset || 1) : undefined,
-
-        vencimento: ["credito", "multiplo"].includes(form.tipo)
-          ? Number(form.vencimento)
-          : undefined,
-
-        fechamento: ["credito", "multiplo"].includes(form.tipo)
-          ? Number(form.fechamento)
-          : undefined,
-      };
-
-      setCartoes([novo, ...cartoes]);
+      add(payload);
     }
 
     setForm({
@@ -98,6 +94,7 @@ export default function RightSidebarCards({
       fechamento: "",
       tipo: "credito",
       diaReset: "",
+      accountId: "",
     });
   };
 
@@ -163,11 +160,21 @@ export default function RightSidebarCards({
         }}
       />
 
-      {/* BANCO (DINÂMICO 🔥) */}
+      {/* BANCO */}
       <select
         className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
         value={form.banco}
-        onChange={(e) => setForm({ ...form, banco: e.target.value })}
+        onChange={(e) => {
+          const banco = e.target.value;
+
+          const contasDoBanco = accounts.filter((a) => a.banco === banco);
+
+          setForm({
+            ...form,
+            banco,
+            accountId: contasDoBanco.length === 1 ? contasDoBanco[0].id : "",
+          });
+        }}
       >
         <option value="">Selecionar banco</option>
 
@@ -176,6 +183,27 @@ export default function RightSidebarCards({
             {bank.nome}
           </option>
         ))}
+      </select>
+
+      {accounts.filter((a) => a.banco === form.banco).length === 0 && (
+        <p className="text-xs text-gray-400">Nenhuma conta desse banco</p>
+      )}
+
+      {/* CONTA */}
+      <select
+        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        value={form.accountId}
+        onChange={(e) => setForm({ ...form, accountId: e.target.value })}
+      >
+        <option value="">Conta vinculada</option>
+
+        {accounts
+          .filter((a) => a.banco === form.banco)
+          .map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
       </select>
 
       {/* TIPO */}
@@ -322,11 +350,14 @@ export default function RightSidebarCards({
             setForm({
               nome: "",
               banco: "",
+              numeroCartao: "",
               limite: "",
               saldoInicial: "",
               vencimento: "",
+              fechamento: "",
               tipo: "credito",
               diaReset: "",
+              accountId: "",
             });
           }}
           className="cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg"

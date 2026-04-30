@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
 body {
   margin: 0;
-  background-color: #0B0F1A;
+  background-color: #0b0f1a;
   color: white;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -39,7 +41,7 @@ body {
   background: linear-gradient(
     120deg,
     transparent 0%,
-    rgba(255,255,255,0.15) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
     transparent 100%
   );
   transform: translateX(-100%);
@@ -48,13 +50,18 @@ body {
 
 @keyframes shine {
   0% {
-    transform: translateX(-150%);
+    transform: translateX(-100%) skewX(-20deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
   }
   100% {
-    transform: translateX(300%);
+    transform: translateX(200%) skewX(-20deg);
+    opacity: 0;
   }
 }
 
-.group-hover\:animate-shine:hover {
-  animation: shine 1s ease;
+.animate-shine {
+  animation: shine 1.2s ease forwards;
 }

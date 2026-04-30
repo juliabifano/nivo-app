@@ -62,11 +62,15 @@ export const BANKS = {
 };
 
 export const normalizeBankName = (name = "") => {
-  const n = name.toLowerCase().trim();
+  const n = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim();
 
   if (n.includes("nubank")) return "nubank";
   if (n.includes("inter")) return "inter";
-  if (n.includes("itaú") || n.includes("itau")) return "itau";
+  if (n.includes("itau")) return "itau";
   if (n.includes("santander")) return "santander";
   if (n.includes("bradesco")) return "bradesco";
   if (n.includes("banco do brasil") || n === "bb") return "bb";

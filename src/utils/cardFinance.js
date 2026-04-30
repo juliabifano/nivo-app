@@ -1,4 +1,12 @@
-export function getCardFinance(cartao, getTransacoes, getFatura, getGastoDebito, getSaldoConta) {
+import { getLastResetDate } from "./cardHelpers";
+
+export function getCardFinance(
+  cartao,
+  getTransacoes,
+  getFatura,
+  getGastoDebito,
+  getSaldoConta,
+) {
   const limite = Number(cartao.limite || 0);
 
   // CRÉDITO
@@ -20,9 +28,12 @@ export function getCardFinance(cartao, getTransacoes, getFatura, getGastoDebito,
 
   // VALE
   if (cartao.tipo === "vale") {
-    const transacoes = getTransacoes(cartao.id).filter(
-      (t) => t.formaPagamento === "debito"
-    );
+    const lastReset = getLastResetDate(cartao.diaReset);
+
+    const transacoes = getTransacoes(cartao.id).filter((t) => {
+      const data = new Date(t.data);
+      return lastReset ? data >= lastReset : true;
+    });
 
     const gastos = transacoes.reduce((acc, t) => acc + Number(t.valor || 0), 0);
 

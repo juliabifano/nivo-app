@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { useBudget } from "../contexts/BudgetContext";
-import { motion } from "framer-motion";
-import { BANKS, getBank } from "../data/banks";
+import { useAccounts } from "../contexts/AccountContext";
+import RightSidebarAccounts from "../components/RightSidebarAccounts";
+import { getBank } from "../data/banks";
+import { useTransactions } from "../contexts/TransactionContext";
+import { mapAccountsWithBalance } from "../core/selectors/accountSelectors";
+import AccountDetailsModal from "../components/accounts/AccountDetailsModal";
 
 export default function Accounts() {
-  const { accounts = [], setAccounts, transactions = [] } = useBudget();
+  const { accounts, remove } = useAccounts();
+  const { transactions = [] } = useTransactions();
 
-  const [form, setForm] = useState({
-    nome: "",
-    banco: "",
-    saldo: "",
-  });
+  const accountsWithBalance = mapAccountsWithBalance(accounts, transactions);
+
+  const [editando, setEditando] = useState(null);
+  const [selected, setSelected] = useState(null);
 
   const formatCurrency = (v) =>
     Number(v || 0).toLocaleString("pt-BR", {
@@ -18,131 +21,85 @@ export default function Accounts() {
       currency: "BRL",
     });
 
-  // ✅ SALDO CORRETO (IGNORA CRÉDITO)
-  const getSaldoAtual = (account) => {
-    const movimentacoes = transactions.filter(
-      (t) =>
-        t.accountId === account.id &&
-        t.formaPagamento !== "credito" // 🔥 ESSENCIAL
-    );
-
-    const saldoTransacoes = movimentacoes.reduce((acc, t) => {
-      const valor = Number(t.valor);
-
-      if (t.tipo === "receita") return acc + valor;
-      return acc - valor;
-    }, 0);
-
-    return Number(account.saldo || 0) + saldoTransacoes;
-  };
-
-  const handleAdd = () => {
-    if (!form.nome || !form.banco) return;
-
-    const nova = {
-      id: crypto.randomUUID(),
-      nome: form.nome,
-      banco: form.banco,
-      saldo: Number(form.saldo || 0),
-    };
-
-    setAccounts([nova, ...accounts]);
-
-    setForm({
-      nome: "",
-      banco: "",
-      saldo: "",
-    });
-  };
-
-  const handleDelete = (id) => {
-    setAccounts(accounts.filter((a) => a.id !== id));
-  };
-
   return (
     <div className="flex h-screen">
-      {/* CONTEÚDO */}
+      {/* LISTA */}
       <div className="flex-1 p-6 overflow-y-auto pr-[360px]">
         <h1 className="text-2xl font-semibold mb-6">Contas</h1>
 
         <div className="flex flex-wrap gap-6">
-          {accounts.map((acc) => {
-            const bank = getBank(acc.banco);
-            const saldo = getSaldoAtual(acc);
+          {accountsWithBalance.map((a) => {
+            const bank = getBank(a.banco);
 
             return (
-              <motion.div
-                key={acc.id}
-                className="w-[320px] h-[160px] rounded-2xl p-4 text-white relative overflow-hidden"
+              <div
+                key={a.id}
+                onClick={() => setSelected(a)}
+                className="w-[320px] p-5 rounded-2xl border border-white/10 cursor-pointer"
                 style={{
-                  background: `linear-gradient(135deg, ${bank.cor}, #0b0f1a)`,
-                  boxShadow: `0 10px 30px ${bank.cor}40`,
+                  background: `linear-gradient(135deg, ${bank.cor}, #0B0F1A)`,
                 }}
-                whileHover={{ scale: 1.03 }}
               >
-                <img src={bank.logo} className="w-8 absolute top-3 right-3" />
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-white/70">{bank.nome}</p>
+                    <p className="text-lg font-semibold mt-1">
+                      {a.nome
+                        ?.toLowerCase()
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </p>
+                    <p className="text-xs text-white/60 mt-1">
+                      {a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1)}
+                    </p>
+                  </div>
 
-                <p className="text-xs opacity-70">{bank.nome}</p>
-                <p className="font-semibold text-lg">{acc.nome}</p>
-
-                <div className="mt-6">
-                  <p className="text-xs opacity-70">Saldo atual</p>
-                  <p className="text-xl font-semibold">
-                    {formatCurrency(saldo)}
-                  </p>
+                  <img
+                    src={bank.logo}
+                    alt={bank.nome}
+                    className="w-9 h-9 object-contain"
+                  />
                 </div>
 
-                <button
-                  onClick={() => handleDelete(acc.id)}
-                  className="absolute bottom-3 right-3 text-xs bg-red-500/70 px-2 py-1 rounded"
-                >
-                  Excluir
-                </button>
-              </motion.div>
+                <p className="text-emerald-300 font-semibold mt-6">
+                  {formatCurrency(a.saldoAtual)}
+                </p>
+
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditando(a);
+                    }}
+                    className="text-xs bg-white/10 px-2 py-1 rounded"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(a.id);
+                    }}
+                    className="text-xs bg-red-500/70 px-2 py-1 rounded"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
 
+      <AccountDetailsModal
+        selected={selected}
+        setSelected={setSelected}
+        transactions={transactions}
+        formatCurrency={formatCurrency}
+      />
+
       {/* SIDEBAR */}
-      <div className="fixed right-4 top-5 w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md">
-        <h2 className="text-lg font-semibold mb-4">Adicionar conta</h2>
-
-        <input
-          className="w-full p-2 bg-[#111827] rounded-lg mb-2"
-          placeholder="Nome da conta"
-          value={form.nome}
-          onChange={(e) => setForm({ ...form, nome: e.target.value })}
-        />
-
-        <select
-          className="w-full p-2 bg-[#111827] rounded-lg mb-2"
-          value={form.banco}
-          onChange={(e) => setForm({ ...form, banco: e.target.value })}
-        >
-          <option value="">Selecionar banco</option>
-          {Object.entries(BANKS).map(([key, bank]) => (
-            <option key={key} value={key}>
-              {bank.nome}
-            </option>
-          ))}
-        </select>
-
-        <input
-          className="w-full p-2 bg-[#111827] rounded-lg mb-3"
-          type="number"
-          placeholder="Saldo inicial"
-          value={form.saldo}
-          onChange={(e) => setForm({ ...form, saldo: e.target.value })}
-        />
-
-        <button
-          onClick={handleAdd}
-          className="w-full bg-emerald-400 text-black p-2 rounded-lg"
-        >
-          Adicionar conta
-        </button>
-      </div>
+      <RightSidebarAccounts editing={editando} setEditing={setEditando} />
     </div>
   );
 }

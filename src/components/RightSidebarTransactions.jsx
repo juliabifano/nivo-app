@@ -1,26 +1,91 @@
-import { useBudget } from "../contexts/BudgetContext";
+import { useState, useEffect } from "react";
 import DatePicker from "../components/DatePicker";
 import CategoryPicker from "../components/CategoryPicker";
+import { useCards } from "../contexts/CardContext";
+import { useAccounts } from "../contexts/AccountContext";
 
 export default function RightSidebarTransactions({
-  form,
-  setForm,
-  handleAdd,
-  editandoId,
-  setEditandoId,
-  cartoes,
+  onAdd,
+  onUpdate,
+  editingTransaction,
+  setEditingTransaction,
 }) {
-  const { categorias, setCategorias } = useBudget();
+  const { cards } = useCards();
+  const { accounts } = useAccounts();
 
   const getToday = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
 
+  const [form, setForm] = useState({
+    descricao: "",
+    valor: "",
+    tipo: "despesa",
+    data: getToday(),
+    categoriaId: "",
+    formaPagamento: "pix",
+    cartaoId: "",
+    parcelas: "",
+    accountId: "",
+  });
+
+  function handleSubmit() {
+    if (!form.descricao || !form.valor) return;
+
+    const dataToSave = {
+      ...form,
+      valor: Number(form.valor),
+      parcelas:
+        form.formaPagamento === "credito" ? Number(form.parcelas || 1) : "",
+    };
+
+    if (editingTransaction) {
+      onUpdate(editingTransaction.id, dataToSave);
+      setEditingTransaction(null);
+    } else {
+      onAdd(dataToSave);
+    }
+
+    resetForm();
+  }
+
+  function resetForm() {
+    setForm({
+      descricao: "",
+      valor: "",
+      tipo: "despesa",
+      data: getToday(),
+      categoriaId: "",
+      formaPagamento: "pix",
+      cartaoId: "",
+      parcelas: "",
+      accountId: "",
+    });
+  }
+
+  useEffect(() => {
+    if (editingTransaction) {
+      setForm({
+        descricao: editingTransaction.descricao || "",
+        valor: editingTransaction.valor || "",
+        tipo: editingTransaction.tipo || "despesa",
+        data: editingTransaction.data || getToday(),
+        categoriaId: editingTransaction.categoriaId || "",
+        formaPagamento: editingTransaction.formaPagamento || "pix",
+        cartaoId: editingTransaction.cartaoId || "",
+        parcelas: editingTransaction.parcelas || "",
+        accountId: editingTransaction.accountId || "",
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingTransaction]);
+
   return (
     <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto space-y-3">
       <h2 className="text-lg font-semibold mb-4">
-        {editandoId ? "Editar lançamento" : "Novo lançamento"}
+        {editingTransaction ? "Editar lançamento" : "Novo lançamento"}
       </h2>
 
       {/* DESCRIÇÃO */}
@@ -31,16 +96,15 @@ export default function RightSidebarTransactions({
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
       />
 
+      {/* CATEGORIA */}
       <CategoryPicker
-        categorias={categorias}
-        selected={form.categorias || []}
-        setSelected={(cats) => setForm({ ...form, categorias: cats })}
-        setCategorias={setCategorias}
+        selected={form.categoriaId}
+        onChange={(id) => setForm({ ...form, categoriaId: id })}
       />
 
       {/* VALOR */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg "
+        className="w-full p-2 bg-[#111827] rounded-lg"
         type="number"
         placeholder="Valor"
         value={form.valor}
@@ -54,12 +118,13 @@ export default function RightSidebarTransactions({
       />
 
       {/* TIPO */}
-      <div className="flex gap-2 bg-[#111827] p-1 rounded-xl  ">
+      <div className="flex gap-2 bg-[#111827] p-1 rounded-xl">
         {["receita", "despesa"].map((t) => (
           <button
+            type="button"
             key={t}
             onClick={() => setForm({ ...form, tipo: t })}
-            className={`flex-1 p-2 rounded-lg cursor-pointer ${
+            className={`flex-1 p-2 rounded-lg ${
               form.tipo === t
                 ? t === "receita"
                   ? "bg-emerald-400 text-black"
@@ -67,26 +132,28 @@ export default function RightSidebarTransactions({
                 : "text-gray-300"
             }`}
           >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            {t}
           </button>
         ))}
       </div>
 
       {/* PAGAMENTO */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg  cursor-pointer"
+        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
         value={form.formaPagamento}
         onChange={(e) => {
-          const tipo = e.target.value;
+          const formaPagamento = e.target.value;
 
           setForm({
             ...form,
-            formaPagamento: tipo,
-            cartao:
-              tipo === "credito" || tipo === "debito" || tipo === "vale"
-                ? form.cartao
-                : "",
-            parcelas: tipo === "credito" ? form.parcelas : "",
+            formaPagamento,
+            cartaoId: ["credito", "debito", "vale"].includes(formaPagamento)
+              ? form.cartaoId
+              : "",
+            parcelas: formaPagamento === "credito" ? form.parcelas : "",
+            accountId: ["pix", "debito", "dinheiro"].includes(formaPagamento)
+              ? form.accountId
+              : "",
           });
         }}
       >
@@ -97,26 +164,42 @@ export default function RightSidebarTransactions({
         <option value="vale">Vale</option>
       </select>
 
-      {/* CARTÃO */}
       {["credito", "debito", "vale"].includes(form.formaPagamento) && (
         <select
           className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-          value={form.cartao}
-          onChange={(e) => setForm({ ...form, cartao: e.target.value })}
+          value={form.cartaoId}
+          onChange={(e) => {
+            const cartaoId = e.target.value;
+            const selectedCard = cards.find(
+              (c) => String(c.id) === String(cartaoId),
+            );
+
+            setForm({
+              ...form,
+              cartaoId,
+              accountId:
+                form.formaPagamento === "debito" && selectedCard?.accountId
+                  ? selectedCard.accountId
+                  : form.accountId,
+            });
+          }}
         >
           <option value="">Selecionar cartão</option>
 
-          {cartoes
+          {cards
             .filter((c) => {
               if (form.formaPagamento === "credito") {
                 return c.tipo === "credito" || c.tipo === "multiplo";
               }
+
               if (form.formaPagamento === "debito") {
                 return c.tipo === "debito" || c.tipo === "multiplo";
               }
+
               if (form.formaPagamento === "vale") {
                 return c.tipo === "vale";
               }
+
               return false;
             })
             .map((c) => (
@@ -127,10 +210,9 @@ export default function RightSidebarTransactions({
         </select>
       )}
 
-      {/* PARCELAS */}
       {form.formaPagamento === "credito" && (
         <input
-          className="w-full p-2 bg-[#111827] rounded-lg "
+          className="w-full p-2 bg-[#111827] rounded-lg"
           type="number"
           placeholder="Parcelas"
           value={form.parcelas}
@@ -138,33 +220,37 @@ export default function RightSidebarTransactions({
         />
       )}
 
+      {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
+        <select
+          className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+          value={form.accountId}
+          onChange={(e) => setForm({ ...form, accountId: e.target.value })}
+        >
+          <option value="">Selecionar conta</option>
+
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
+        </select>
+      )}
+
       {/* BOTÃO */}
       <button
-        onClick={handleAdd}
-        className="w-full bg-emerald-400 text-black p-2 rounded-lg hover:bg-emerald-300 cursor-pointer"
+        onClick={handleSubmit}
+        className="w-full bg-emerald-400 text-black p-2 rounded-lg"
       >
-        {editandoId ? "Salvar edição" : "Adicionar"}
+        {editingTransaction ? "Salvar" : "Adicionar"}
       </button>
 
-      {/* CANCELAR */}
-      {editandoId && (
+      {editingTransaction && (
         <button
           onClick={() => {
-            setEditandoId(null);
-            setCategoriaInput("");
-            setMostrarSugestoes(false);
-            setForm({
-              descricao: "",
-              categoria: "",
-              valor: "",
-              tipo: "despesa",
-              data: getToday(),
-              formaPagamento: "pix",
-              cartao: "",
-              parcelas: "",
-            });
+            setEditingTransaction(null);
+            resetForm();
           }}
-          className="w-full bg-gray-700 text-white p-2 rounded-lg "
+          className="w-full bg-gray-700 text-white p-2 rounded-lg"
         >
           Cancelar
         </button>

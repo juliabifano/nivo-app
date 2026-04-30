@@ -2,10 +2,15 @@ import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import SaldoCard from "../components/SaldoCard";
 import NubankBar from "../components/NubankBar";
-import { useBudget } from "../contexts/BudgetContext";
+import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
+import { useTransactions } from "../contexts/TransactionContext";
+import { useCategories } from "../contexts/CategoryContext";
+import { getMonthlyBudgetSnapshot } from "../utils/getMonthlyBudgetSnapshot";
 
 export default function BudgetMonthly() {
-  const { items, transactions = [] } = useBudget();
+  const { items = [] } = useBudgetAnnual();
+  const { transactions = [] } = useTransactions();
+  const { categories = [] } = useCategories();
 
   const months = [
     "jan",
@@ -25,93 +30,6 @@ export default function BudgetMonthly() {
   const getCurrentMonth = () => months[new Date().getMonth()];
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
 
-  const normalizeItem = (item) => ({
-    ...item,
-    valorFinal: Number(item.valorMensal ?? item.valor ?? 0),
-  });
-
-  const getMonthFromDate = (date) =>
-    new Date(date)
-      .toLocaleString("pt-BR", { month: "short" })
-      .toLowerCase()
-      .replace(".", "");
-
-  const expandTransactions = (transactions) => {
-    const expanded = [];
-
-    transactions.forEach((t) => {
-      const parcelas = Number(t.totalParcelas || 1);
-      const valorParcela = Number(t.valor) / parcelas;
-      const baseDate = new Date(t.data);
-
-      for (let i = 0; i < parcelas; i++) {
-        const newDate = new Date(baseDate);
-        newDate.setMonth(baseDate.getMonth() + i);
-
-        expanded.push({
-          ...t,
-          valor: valorParcela,
-          data: newDate.toISOString(),
-        });
-      }
-    });
-
-    return expanded;
-  };
-
-  const allTransactions = expandTransactions(transactions);
-
-  const monthlyItems = [
-    ...items.map((item) => normalizeItem({ ...item, origem: "orcamento" })),
-    ...allTransactions.map((t) => normalizeItem({ ...t, origem: "transacao" })),
-  ].filter((item) => {
-    if (item.origem === "orcamento") {
-      return item.meses?.includes(selectedMonth);
-    }
-
-    if (item.origem === "transacao") {
-      return getMonthFromDate(item.data) === selectedMonth;
-    }
-
-    return false;
-  });
-
-  const calculateMonthlyTotals = () => {
-    let receitas = 0;
-    let despesas = 0;
-
-    monthlyItems.forEach((item) => {
-      const valor = Number(item.valorFinal ?? item.valor ?? 0);
-      if (item.tipo === "receita") receitas += valor;
-      else despesas += valor;
-    });
-
-    return { receitas, despesas, saldo: receitas - despesas };
-  };
-
-  const { receitas, despesas } = calculateMonthlyTotals();
-
-  const getCategoryDataByType = (tipo) => {
-    const data = {};
-
-    monthlyItems.forEach((item) => {
-      if (item.tipo !== tipo) return;
-
-      const valor = Number(item.valorFinal ?? item.valor ?? 0);
-      const categoria = item.categoria || "Sem categoria";
-
-      data[categoria] = (data[categoria] || 0) + valor;
-    });
-
-    return Object.entries(data).map(([name, value]) => ({
-      name,
-      value,
-    }));
-  };
-
-  const despesasData = getCategoryDataByType("despesa");
-  const receitasData = getCategoryDataByType("receita");
-
   const formatCurrency = (value) => {
     const number = Number(value);
     if (!Number.isFinite(number)) return "R$ 0,00";
@@ -121,6 +39,19 @@ export default function BudgetMonthly() {
       currency: "BRL",
     });
   };
+
+  // =========================
+  // SNAPSHOT ÚNICO
+  // =========================
+  const budget = getMonthlyBudgetSnapshot(
+    items,
+    transactions,
+    selectedMonth,
+    categories,
+  );
+
+  const { monthlyItems, receitas, despesas, receitasData, despesasData } =
+    budget;
 
   const monthNames = {
     jan: "JANEIRO",
@@ -279,8 +210,7 @@ export default function BudgetMonthly() {
                     </p>
 
                     <p className="text-gray-400 text-sm">
-                      {item.categoria?.charAt(0).toUpperCase() +
-                        item.categoria?.slice(1)}
+                      {item.categoriaNome}
                     </p>
                   </div>
 

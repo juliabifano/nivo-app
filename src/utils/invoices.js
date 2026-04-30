@@ -34,7 +34,7 @@ export function generateInvoice({ transactions, card, month, year }) {
 
     if (t.formaPagamento !== "credito") return;
 
-    const totalParcelas = Number(t.totalParcelas || 1);
+    const totalParcelas = Number(t.parcelas || 1);
     const valorParcela = Number(t.valor) / totalParcelas;
 
     const dataCompra = parseDate(t.data);

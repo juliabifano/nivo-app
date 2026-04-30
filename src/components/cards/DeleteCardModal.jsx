@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function DeleteCardModal({
   confirmDelete,
   setConfirmDelete,
-  cartoes,
-  setCartoes,
+  onDelete,
 }) {
   return (
     <AnimatePresence>
@@ -39,9 +38,7 @@ export default function DeleteCardModal({
 
               <button
                 onClick={() => {
-                  setCartoes(
-                    cartoes.filter((c) => c.id !== confirmDelete.id)
-                  );
+                  onDelete(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
                 className="px-4 py-2 rounded bg-red-500 text-white cursor-pointer"
