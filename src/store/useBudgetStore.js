@@ -37,6 +37,7 @@ export function useBudgetStore() {
               ...data,
               valorMensal: Number(data.valorMensal || 0),
               meses: Array.isArray(data.meses) ? data.meses : [],
+              diaVencimento: Number(data.diaVencimento || 1),
             }
           : item,
       ),

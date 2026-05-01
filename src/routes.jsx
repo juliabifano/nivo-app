@@ -8,6 +8,7 @@ import BudgetMonthly from "./pages/BudgetMonthly";
 import Transactions from "./pages/Transactions";
 import Cards from "./pages/Cards";
 import Accounts from "./pages/Accounts";
+import Schedule from "./pages/Schedule";
 
 export default function AppRoutes() {
   return (
@@ -23,7 +24,7 @@ export default function AppRoutes() {
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/cards" element={<Cards />} />
         <Route path="/accounts" element={<Accounts />} />
-
+        <Route path="/schedule" element={<Schedule />} />
       </Route>
     </Routes>
   );

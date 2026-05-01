@@ -19,6 +19,10 @@ export default function BudgetAnnual() {
     valorMensal: "",
     tipo: "despesa",
     meses: [],
+    diaVencimento: "",
+    formaPagamento: "pix",
+    accountId: "",
+    cartaoId: "",
   });
 
   const [editingId, setEditingId] = useState(null);
@@ -75,6 +79,10 @@ export default function BudgetAnnual() {
       valorMensal: "",
       tipo: "despesa",
       meses: [],
+      diaVencimento: "",
+      formaPagamento: "pix",
+      accountId: "",
+      cartaoId: "",
     });
   };
 
@@ -103,11 +111,11 @@ export default function BudgetAnnual() {
   );
 
   return (
-    <div className="flex-1 h-screen overflow-y-auto p-6 flex justify-center">
-      <div className="flex flex-1 items-start">
+    <div className="flex-1 h-screen overflow-hidden p-6 flex justify-center">
+      <div className="flex flex-1 h-full items-start overflow-hidden min-h-0">
         {/* CONTEÚDO CENTRAL */}
-        <div className="flex-1 pr-[360px] flex justify-center">
-          <div className="w-full max-w-5xl flex flex-col gap-8">
+        <div className="flex-1 pr-[360px] flex justify-center overflow-hidden min-h-0 h-full">
+          <div className="w-full max-w-5xl flex flex-col gap-6 h-full min-h-0 overflow-hidden">
             {/* HEADER */}
             <div>
               <h1 className="text-2xl font-semibold mb-4">Orçamento Anual</h1>
@@ -124,7 +132,7 @@ export default function BudgetAnnual() {
             <div>
               <div className="grid grid-cols-2 gap-6">
                 {/* RECEITAS */}
-                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72">
+                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-68">
                   <p className="text-sm text-gray-400 mb-2">Receitas</p>
 
                   {receitasData.length === 0 ? (
@@ -160,7 +168,7 @@ export default function BudgetAnnual() {
                 </div>
 
                 {/* DESPESAS */}
-                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-72">
+                <div className="bg-white/5 backdrop-blur-xl p-6 pt-5 pb-15 rounded-2xl border border-white/10 shadow-lg h-68">
                   <p className="text-sm text-gray-400 mb-2">Despesas</p>
 
                   {despesasData.length === 0 ? (
@@ -198,10 +206,10 @@ export default function BudgetAnnual() {
             </div>
 
             {/* LISTA */}
-            <div>
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <h2 className="text-lg font-medium mb-4">Lançamentos</h2>
 
-              <div className="flex flex-col gap-3 mb-5">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col gap-3 mb-5 no-scrollbar">
                 {items.length === 0 ? (
                   <p className="text-gray-400">Nenhum lançamento ainda</p>
                 ) : (

@@ -5,6 +5,7 @@ import { CategoryProvider } from "./contexts/CategoryContext";
 import { CardProvider } from "./contexts/CardContext";
 import { BudgetAnnualProvider } from "./contexts/BudgetAnnualContext";
 import { AccountProvider } from "./contexts/AccountContext";
+import { PaymentScheduleProvider } from "./contexts/PaymentScheduleContext";
 
 export default function App() {
   return (
@@ -13,7 +14,9 @@ export default function App() {
         <CardProvider>
           <BudgetAnnualProvider>
             <AccountProvider>
-              <AppRoutes />
+              <PaymentScheduleProvider>
+                <AppRoutes />
+              </PaymentScheduleProvider>
             </AccountProvider>
           </BudgetAnnualProvider>
         </CardProvider>

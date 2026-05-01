@@ -44,7 +44,7 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="mt-auto pt-6 text-xs text-center text-gray-500">
-        <p className="text-[16px] opacity-60">nivo ⬩ v1.0.0</p>
+        <p className="text-[16px] opacity-60">nivo ⬩ v1.2.0</p>
       </div>
     </aside>
   );

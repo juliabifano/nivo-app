@@ -1,4 +1,6 @@
 import CategoryPicker from "./CategoryPicker";
+import { useAccounts } from "../contexts/AccountContext";
+import { useCards } from "../contexts/CardContext";
 
 export default function RightSidebar({
   form,
@@ -13,6 +15,9 @@ export default function RightSidebar({
 
   const valor = Number(form.valorMensal) || 0;
   const meses = form.meses?.length || 0;
+
+  const { accounts } = useAccounts();
+  const { cards } = useCards();
 
   return (
     <div
@@ -77,6 +82,103 @@ export default function RightSidebar({
           Despesa
         </button>
       </div>
+
+      <select
+        className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
+        value={form.formaPagamento || "pix"}
+        onChange={(e) => {
+          const formaPagamento = e.target.value;
+
+          setForm({
+            ...form,
+            formaPagamento,
+            accountId: ["pix", "debito", "dinheiro"].includes(formaPagamento)
+              ? form.accountId
+              : "",
+            cartaoId: ["credito", "debito", "vale"].includes(formaPagamento)
+              ? form.cartaoId
+              : "",
+          });
+        }}
+      >
+        <option value="pix">Pix</option>
+        <option value="debito">Débito</option>
+        <option value="credito">Crédito</option>
+        <option value="dinheiro">Dinheiro</option>
+        <option value="vale">Vale</option>
+      </select>
+
+      {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
+        <select
+          className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
+          value={form.accountId || ""}
+          onChange={(e) => setForm({ ...form, accountId: e.target.value })}
+        >
+          <option value="">Selecionar conta</option>
+
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {["credito", "debito", "vale"].includes(form.formaPagamento) && (
+        <select
+          className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
+          value={form.cartaoId || ""}
+          onChange={(e) => {
+            const cartaoId = e.target.value;
+            const selectedCard = cards.find(
+              (c) => String(c.id) === String(cartaoId),
+            );
+
+            setForm({
+              ...form,
+              cartaoId,
+              accountId:
+                form.formaPagamento === "debito" && selectedCard?.accountId
+                  ? selectedCard.accountId
+                  : form.accountId,
+            });
+          }}
+        >
+          <option value="">Selecionar cartão</option>
+
+          {cards
+            .filter((c) => {
+              if (form.formaPagamento === "credito") {
+                return c.tipo === "credito" || c.tipo === "multiplo";
+              }
+
+              if (form.formaPagamento === "debito") {
+                return c.tipo === "debito" || c.tipo === "multiplo";
+              }
+
+              if (form.formaPagamento === "vale") {
+                return c.tipo === "vale";
+              }
+
+              return false;
+            })
+            .map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+        </select>
+      )}
+
+      <input
+        className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
+        placeholder="Dia do vencimento"
+        type="number"
+        min="1"
+        max="31"
+        value={form.diaVencimento || ""}
+        onChange={(e) => setForm({ ...form, diaVencimento: e.target.value })}
+      />
 
       <div className="grid grid-cols-4 gap-2 mb-4">
         {months.map((m) => (
