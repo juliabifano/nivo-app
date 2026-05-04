@@ -8,10 +8,18 @@ import EditIcon from "../assets/icons/Edit.svg?react";
 import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import { useCategories } from "../contexts/CategoryContext";
 import { getAnnualBudgetSnapshot } from "../utils/getAnnualBudgetSnapshot";
+import { getPaymentVisual } from "../utils/getPaymentVisual";
+import { useCards } from "../contexts/CardContext";
+import { useAccounts } from "../contexts/AccountContext";
 
 export default function BudgetAnnual() {
   const { items = [], add, update, remove } = useBudgetAnnual();
   const { categories } = useCategories();
+  const { cards = [] } = useCards();
+  const { accounts = [] } = useAccounts();
+  const [monthFilter, setMonthFilter] = useState("todos");
+
+  const [showFilters, setShowFilters] = useState(false);
 
   const [form, setForm] = useState({
     descricao: "",
@@ -110,6 +118,14 @@ export default function BudgetAnnual() {
     </text>
   );
 
+  const filteredItems =
+    monthFilter === "todos"
+      ? items
+      : items.filter((item) => item.meses?.includes(monthFilter));
+
+  const activeMonthFilter =
+    monthFilter !== "todos" ? monthFilter.toUpperCase() : null;
+
   return (
     <div className="flex-1 h-screen overflow-hidden p-6 flex justify-center">
       <div className="flex flex-1 h-full items-start overflow-hidden min-h-0">
@@ -207,34 +223,107 @@ export default function BudgetAnnual() {
 
             {/* LISTA */}
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-              <h2 className="text-lg font-medium mb-4">Lançamentos</h2>
+              <div>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-semibold">Lançamentos</h2>
 
-              <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col gap-3 mb-5 no-scrollbar">
-                {items.length === 0 ? (
+                  <button
+                    onClick={() => setShowFilters((prev) => !prev)}
+                    className="px-3 py-1 rounded-lg bg-white/10 text-sm text-gray-300 hover:bg-white/20 cursor-pointer"
+                  >
+                    Filtros
+                  </button>
+                </div>
+
+                {activeMonthFilter && (
+                  <div className="flex gap-2 mt-3">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sm">
+                      <span>{activeMonthFilter}</span>
+
+                      <button
+                        onClick={() => {
+                          setMonthFilter("todos");
+                          setShowFilters(false);
+                        }}
+                        className="text-gray-400 hover:text-white cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {showFilters && (
+                  <div className="mt-3 p-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setMonthFilter("todos");
+                        setShowFilters(false);
+                      }}
+                      className={`cursor-pointer px-3 py-1 rounded-full text-xs ${
+                        monthFilter === "todos"
+                          ? "bg-emerald-400 text-black"
+                          : "bg-white/10 text-gray-300"
+                      }`}
+                    >
+                      Todos
+                    </button>
+
+                    {months.map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => {
+                          setMonthFilter(m);
+                          setShowFilters(false);
+                        }}
+                        className={`cursor-pointer px-3 py-1 rounded-full text-xs ${
+                          monthFilter === m
+                            ? "bg-emerald-400 text-black"
+                            : "bg-white/10 text-gray-300"
+                        }`}
+                      >
+                        {m.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col gap-3 mb-5 no-scrollbar mt-5">
+                {filteredItems.length === 0 ? (
                   <p className="text-gray-400">Nenhum lançamento ainda</p>
                 ) : (
-                  items.map((item) => (
+                  filteredItems.map((item) => (
                     <div
                       key={item.id}
                       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition"
                     >
-                      <div>
-                        <p className="font-medium">{item.descricao}</p>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={getPaymentVisual({ item, cards, accounts })}
+                          className="w-8 h-8 object-contain"
+                        />
 
-                        <p className="text-sm text-gray-400">
-                          {categories.find((c) => c.id === item.categoriaId)
-                            ?.nome || "Sem categoria"}
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{item.descricao}</p>
 
-                        <div className="flex gap-1 flex-wrap mt-1">
-                          {item.meses?.map((m) => (
-                            <span
-                              key={m}
-                              className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300"
-                            >
-                              {m.toUpperCase()}
-                            </span>
-                          ))}
+                            <p className="text-sm text-gray-400">
+                              {categories.find((c) => c.id === item.categoriaId)
+                                ?.nome || "Sem categoria"}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {item.meses?.map((m) => (
+                              <span
+                                key={m}
+                                className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300"
+                              >
+                                {m.toUpperCase()}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
@@ -276,7 +365,6 @@ export default function BudgetAnnual() {
           </div>
         </div>
 
-        {/* SIDEBAR */}
         <RightSidebar
           form={form}
           setForm={setForm}

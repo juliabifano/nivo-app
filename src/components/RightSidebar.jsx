@@ -18,6 +18,7 @@ export default function RightSidebar({
 
   const { accounts } = useAccounts();
   const { cards } = useCards();
+  
 
   return (
     <div
@@ -92,23 +93,29 @@ export default function RightSidebar({
           setForm({
             ...form,
             formaPagamento,
-            accountId: ["pix", "debito", "dinheiro"].includes(formaPagamento)
+            accountId: ["pix", "debito_conta", "dinheiro"].includes(
+              formaPagamento,
+            )
               ? form.accountId
               : "",
-            cartaoId: ["credito", "debito", "vale"].includes(formaPagamento)
+
+            cartaoId: ["credito", "debito_cartao", "vale"].includes(
+              formaPagamento,
+            )
               ? form.cartaoId
               : "",
           });
         }}
       >
         <option value="pix">Pix</option>
-        <option value="debito">Débito</option>
+        <option value="debito_conta">Débito em conta</option>
+        <option value="debito_cartao">Débito no cartão</option>
         <option value="credito">Crédito</option>
         <option value="dinheiro">Dinheiro</option>
         <option value="vale">Vale</option>
       </select>
 
-      {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
+      {["pix", "debito_conta", "dinheiro"].includes(form.formaPagamento) && (
         <select
           className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
           value={form.accountId || ""}
@@ -124,7 +131,7 @@ export default function RightSidebar({
         </select>
       )}
 
-      {["credito", "debito", "vale"].includes(form.formaPagamento) && (
+      {["credito", "debito_cartao", "vale"].includes(form.formaPagamento) && (
         <select
           className="w-full mb-3 p-2 bg-[#111827] rounded-lg"
           value={form.cartaoId || ""}
@@ -138,7 +145,7 @@ export default function RightSidebar({
               ...form,
               cartaoId,
               accountId:
-                form.formaPagamento === "debito" && selectedCard?.accountId
+                form.formaPagamento === "debito_cartao" && selectedCard?.accountId
                   ? selectedCard.accountId
                   : form.accountId,
             });
@@ -152,7 +159,7 @@ export default function RightSidebar({
                 return c.tipo === "credito" || c.tipo === "multiplo";
               }
 
-              if (form.formaPagamento === "debito") {
+              if (form.formaPagamento === "debito_cartao") {
                 return c.tipo === "debito" || c.tipo === "multiplo";
               }
 

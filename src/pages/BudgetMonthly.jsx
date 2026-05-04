@@ -6,11 +6,16 @@ import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import { useCategories } from "../contexts/CategoryContext";
 import { getMonthlyBudgetSnapshot } from "../utils/getMonthlyBudgetSnapshot";
+import { getPaymentVisual } from "../utils/getPaymentVisual";
+import { useCards } from "../contexts/CardContext";
+import { useAccounts } from "../contexts/AccountContext";
 
 export default function BudgetMonthly() {
   const { items = [] } = useBudgetAnnual();
   const { transactions = [] } = useTransactions();
   const { categories = [] } = useCategories();
+  const { cards = [] } = useCards();
+  const { accounts = [] } = useAccounts();
 
   const months = [
     "jan",
@@ -203,15 +208,19 @@ export default function BudgetMonthly() {
                   key={item.id + item.data}
                   className="bg-white/5 backdrop-blur-xl p-4 mt-3 rounded-xl flex justify-between items-center border border-white/10 hover:bg-white/10 transition"
                 >
-                  <div>
-                    <p className="font-medium">
-                      {item.descricao?.charAt(0).toUpperCase() +
-                        item.descricao?.slice(1)}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={getPaymentVisual({ item, cards, accounts })}
+                      className="w-8 h-8 object-contain"
+                    />
 
-                    <p className="text-gray-400 text-sm">
-                      {item.categoriaNome}
-                    </p>
+                    <div>
+                      <p className="font-medium">{item.descricao}</p>
+
+                      <p className="text-sm text-gray-400">
+                        {item.categoriaNome || "Sem categoria"}
+                      </p>
+                    </div>
                   </div>
 
                   <p

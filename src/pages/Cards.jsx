@@ -6,6 +6,7 @@ import CardItem from "../components/cards/CardItem";
 import DeleteCardModal from "../components/cards/DeleteCardModal";
 import { useCards } from "../contexts/CardContext";
 import { useTransactions } from "../contexts/TransactionContext";
+import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import {
   generateInvoice,
   groupByDate,
@@ -14,7 +15,8 @@ import {
 
 export default function Cards() {
   const { cards, remove } = useCards();
- const { transactions = [] } = useTransactions();
+  const { transactions = [] } = useTransactions();
+  const { items: budgetItems = [] } = useBudgetAnnual();
 
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
@@ -23,6 +25,55 @@ export default function Cards() {
   const [invoiceDate, setInvoiceDate] = useState(null);
   const [direction, setDirection] = useState(0);
 
+  const months = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
+
+  const currentMonthIndex = new Date().getMonth();
+  const currentMonth = months[currentMonthIndex];
+  const currentYear = new Date().getFullYear();
+
+  const paidScheduleIds = transactions
+    .map((t) => t.schedulePaymentId)
+    .filter(Boolean);
+
+  const budgetAsTransactions = budgetItems
+    .filter((item) => item.cartaoId)
+    .filter((item) => item.meses?.includes(currentMonth))
+    .filter((item) => {
+      const paymentId = `orcamento-${item.id}-${currentMonth}-${currentYear}`;
+      return !paidScheduleIds.includes(paymentId);
+    })
+    .map((item) => ({
+      id: `budget-${item.id}-${currentMonth}-${currentYear}`,
+      descricao: item.descricao,
+      valor: Number(item.valorMensal || 0),
+      tipo: item.tipo,
+      categoriaId: item.categoriaId,
+      data: `${currentYear}-${String(currentMonthIndex + 1).padStart(2, "0")}-${String(
+        item.diaVencimento || 1,
+      ).padStart(2, "0")}`,
+      formaPagamento: item.formaPagamento || "credito",
+      cartaoId: item.cartaoId,
+      accountId: item.accountId || "",
+      parcelas: 1,
+      origem: "orcamento",
+      isPreview: true,
+    }));
+
+  const allTransactions = [...transactions, ...budgetAsTransactions];
+
   const formatCurrency = (v) =>
     Number(v || 0).toLocaleString("pt-BR", {
       style: "currency",
@@ -30,8 +81,8 @@ export default function Cards() {
     });
 
   const getTransacoes = (id) =>
-    Array.isArray(transactions)
-      ? transactions.filter((t) => String(t.cartaoId) === String(id))
+    Array.isArray(allTransactions)
+      ? allTransactions.filter((t) => String(t.cartaoId) === String(id))
       : [];
 
   const getGasto = (id) => {
@@ -102,7 +153,7 @@ export default function Cards() {
               <CardItem
                 key={c.id}
                 c={c}
-                transactions={transactions}
+                transactions={allTransactions}
                 setSelected={setSelected}
                 setEditandoCartao={setEditandoCartao}
                 setConfirmDelete={setConfirmDelete}
@@ -124,7 +175,7 @@ export default function Cards() {
       <CardDetailsModal
         selected={selected}
         setSelected={setSelected}
-        transactions={transactions}
+        transactions={allTransactions}
         formatCurrency={formatCurrency}
         getTransacoes={getTransacoes}
         getGasto={getGasto}

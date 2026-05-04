@@ -39,13 +39,13 @@ export default function Card3D({
 
   return (
     <div
-      className="perspective-[1000px]"
+      className="perspective-[1000px] w-[330px]"
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
     >
       <div
         style={style}
-        className="relative group h-[200px] p-6 rounded-2xl p-5 flex flex-col justify-between transition duration-300 ease-out"
+        className="relative group w-[330px] h-[200px] rounded-2xl p-6 flex flex-col justify-between transition duration-300 ease-out"
       >
         {/* IMAGEM */}
         <div

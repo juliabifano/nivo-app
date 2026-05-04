@@ -101,7 +101,7 @@ export function getDashboardSnapshot({
   const topCategories = Object.entries(topCategoriesMap)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 4);
+    .slice(0, 10);
 
   const usedCardIds = [...transactions]
     .filter((t) => t.cartaoId)

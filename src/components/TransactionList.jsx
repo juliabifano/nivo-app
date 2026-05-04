@@ -8,6 +8,9 @@ import UndoToast from "./UndoToast";
 import { useCategories } from "../contexts/CategoryContext";
 import { mapTransactionsWithCategory } from "../core/selectors/categorySelectors";
 import { useCards } from "../contexts/CardContext";
+import { parseLocalDate } from "../core/selectors/transactionSelectors";
+import { getPaymentVisual } from "../utils/getPaymentVisual";
+import { useAccounts } from "../contexts/AccountContext";
 
 export default function TransactionList({
   transactions = [],
@@ -15,7 +18,8 @@ export default function TransactionList({
   onEdit,
 }) {
   const { categories } = useCategories();
-  const { cards } = useCards();
+  const { cards = [] } = useCards();
+  const { accounts = [] } = useAccounts();
 
   function getCardName(id) {
     return cards.find((c) => String(c.id) === String(id))?.nome || "";
@@ -93,24 +97,41 @@ export default function TransactionList({
                     key={t.id}
                     className="bg-white/5 border border-white/10 p-4 rounded-xl flex justify-between items-center hover:bg-white/10 transition"
                   >
-                    <div>
-                      <p className="font-medium">{t.descricao}</p>
+                    {/* ESQUERDA */}
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={getPaymentVisual({ item: t, cards, accounts })}
+                        className="w-8 h-8 object-contain"
+                      />
 
-                      <p className="text-xs text-gray-400">
-                        {t.categoriaNome}
-                        {t.cartaoId && getCardName(t.cartaoId)
-                          ? ` • ${getCardName(t.cartaoId)}`
-                          : ""}
-                        {parcelaLabel}
-                      </p>
+                      <div>
+                        <p className="font-medium">{t.descricao}</p>
+
+                        <p className="text-xs text-gray-400">
+                          {t.categoriaNome}
+                          {t.cartaoId && getCardName(t.cartaoId)
+                            ? ` • ${getCardName(t.cartaoId)}`
+                            : ""}
+                          {parcelaLabel}
+                        </p>
+
+                        <p className="text-xs text-gray-500 mt-1">
+                          {parseLocalDate(t.data).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
                     </div>
 
+                    {/* DIREITA */}
                     <div className="flex items-center gap-4">
                       <p
                         className={
                           t.tipo === "receita"
-                            ? "text-emerald-400 font-medium"
-                            : "text-red-400 font-medium"
+                            ? "text-emerald-400 font-medium whitespace-nowrap"
+                            : "text-red-400 font-medium whitespace-nowrap"
                         }
                       >
                         {Number(t.valor).toLocaleString("pt-BR", {

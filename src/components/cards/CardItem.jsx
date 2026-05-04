@@ -18,20 +18,29 @@ export default function CardItem({
   const bancoKey = c.banco || "default";
   const imagem = `/cards/${bancoKey}.svg`;
 
-  const gasto = transactions
-    .filter((t) => String(t.cartaoId) === String(c.id))
-    .reduce((acc, t) => acc + Number(t.valor), 0);
+  const transacoesDoCartao = transactions.filter(
+    (t) => String(t.cartaoId) === String(c.id),
+  );
+
+  const gastoReal = transacoesDoCartao
+    .filter((t) => !t.isPreview)
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
+
+  const gastoPrevisto = transacoesDoCartao
+    .filter((t) => t.isPreview)
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
+
+  const gastoTotal = gastoReal + gastoPrevisto;
 
   const limite = c.limite || 0;
   const saldo = c.saldo || 0;
 
   const disponivel =
-    c.tipo === "vale" ? saldo - gasto : limite - gasto;
+    c.tipo === "vale" ? saldo - gastoTotal : limite - gastoTotal;
 
   const base = c.tipo === "vale" ? saldo : limite;
 
-  const percent =
-    base > 0 ? Math.min((gasto / base) * 100, 100) : 0;
+  const percent = base > 0 ? Math.min((gastoTotal / base) * 100, 100) : 0;
 
   const getBarColor = () => {
     if (percent > 80) return "bg-red-400";
@@ -99,13 +108,23 @@ export default function CardItem({
           {formatCardNumber(c.numeroCartao)}
         </p>
 
-        <div className="mt-6">
+        <div className="mt-2">
           {(c.tipo === "credito" || c.tipo === "multiplo") && (
             <>
               <p className="text-sm">Limite: {formatCurrency(limite)}</p>
               <p className="text-xs opacity-70">
                 Disponível: {formatCurrency(disponivel)}
               </p>
+
+              <p className="text-xs opacity-70">
+                Atual: {formatCurrency(gastoReal)}
+              </p>
+
+              {gastoPrevisto > 0 && (
+                <p className="text-xs text-yellow-200">
+                  Previsto: {formatCurrency(gastoPrevisto)}
+                </p>
+              )}
             </>
           )}
 
