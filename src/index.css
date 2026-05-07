@@ -65,3 +65,58 @@ body {
 .animate-shine {
   animation: shine 1.2s ease forwards;
 }
+
+.apexcharts-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.nivo-tooltip {
+  min-width: 190px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(11, 15, 26, 0.5);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.32);
+  color: white;
+}
+
+.nivo-tooltip-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.nivo-tooltip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.nivo-tooltip-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+.nivo-tooltip-dot.receita {
+  background: #00f5b0;
+}
+
+.nivo-tooltip-dot.despesa {
+  background: #ff5c7a;
+}
+
+.nivo-tooltip-label {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.apexcharts-xaxistooltip {
+  display: none !important;
+}
