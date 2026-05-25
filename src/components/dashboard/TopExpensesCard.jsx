@@ -1,10 +1,12 @@
+import Card from "../ui/Card";
+
 export default function TopExpensesCard({ topCategories, summary, formatCurrency }) {
   return (
-    <div className="col-span-4 bg-white/5 border border-white/10 rounded-[28px] p-4 shadow-lg overflow-hidden">
+   <Card hover="subtle" className="p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-sm text-gray-400">Top gastos</p>
-          <p className="text-xs text-gray-500 mt-1">Categorias do mês</p>
+         <p className="text-[15px] font-medium text-gray-300">Top gastos</p>
+         <p className="text-[11px] text-gray-500/80 mt-1">Categorias do mês</p>
         </div>
 
         <span className="text-[10px] px-2 py-1 rounded-full bg-red-400/10 text-red-300 border border-red-400/20">
@@ -12,7 +14,7 @@ export default function TopExpensesCard({ topCategories, summary, formatCurrency
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {topCategories.length === 0 ? (
           <p className="text-gray-500 text-sm col-span-3">Sem dados ainda.</p>
         ) : (
@@ -24,7 +26,7 @@ export default function TopExpensesCard({ topCategories, summary, formatCurrency
             return (
               <div
                 key={cat.name}
-                className="bg-white/[0.045] border border-white/[0.08] rounded-2xl px-3 py-2 min-w-0 hover:bg-white/[0.06] transition"
+                className="bg-white/[0.045] border border-white/[0.08] rounded-2xl px-3 py-3 sm:py-2 min-w-0 hover:bg-white/[0.06] transition"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 min-w-0">
@@ -48,9 +50,9 @@ export default function TopExpensesCard({ topCategories, summary, formatCurrency
                   </span>
                 </div>
 
-                <div className="w-full h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
+                <div className="w-full h-1 bg-white/[0.05] rounded-full mt-2 overflow-hidden">
                   <div
-                    className="h-1 rounded-full bg-red-400"
+                    className="h-1 rounded-full bg-gradient-to-r from-red-400 to-rose-500"
                     style={{ width: `${percent}%` }}
                   />
                 </div>
@@ -59,6 +61,6 @@ export default function TopExpensesCard({ topCategories, summary, formatCurrency
           })
         )}
       </div>
-    </div>
+    </Card>
   );
 }

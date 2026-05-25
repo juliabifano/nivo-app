@@ -1,4 +1,5 @@
 import { getPaymentVisual } from "../../utils/getPaymentVisual";
+import Card from "../ui/Card";
 
 export default function RecentTransactionsCard({
   transactions,
@@ -7,12 +8,14 @@ export default function RecentTransactionsCard({
   formatCurrency,
 }) {
   return (
-    <div className="col-span-8 bg-white/5 border border-white/10 rounded-[28px] p-4 shadow-lg overflow-hidden">
+    <Card hover="subtle" className="p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-sm text-gray-400">Transações recentes</p>
+          <p className="text-[15px] font-medium text-gray-300">
+            Transações recentes
+          </p>
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[11px] text-gray-500/80 mt-1">
             Últimas movimentações
           </p>
         </div>
@@ -22,37 +25,43 @@ export default function RecentTransactionsCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 mt-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-2">
         {transactions.length === 0 ? (
-          <p className="text-gray-500 text-sm col-span-4">
-            Nenhuma transação ainda.
-          </p>
+          <div className="col-span-4 h-[92px] flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-2">
+              <span className="text-base">💳</span>
+            </div>
+
+            <p className="text-sm text-white font-medium">
+              Nenhuma transação ainda
+            </p>
+
+            <p className="text-xs text-gray-500 mt-1">
+              Seus lançamentos recentes aparecerão aqui.
+            </p>
+          </div>
         ) : (
           transactions.slice(0, 4).map((t) => (
             <div
               key={t.id}
               className="
-                h-[74px]
-                bg-gradient-to-br
-                from-white/[0.07]
-                to-white/[0.025]
-                border border-white/10
-                rounded-2xl
-                px-3 py-3
-                hover:border-white/20
-                hover:bg-white/[0.08]
-                transition-all
-                min-w-0
-              "
+          min-h-[74px]
+          bg-gradient-to-br
+          from-white/[0.05]
+          to-transparent
+          border border-white/10
+          rounded-2xl
+          px-3 py-3
+          hover:border-white/20
+          hover:bg-white/[0.08]
+          transition-all
+          min-w-0
+        "
             >
-              <div className="flex items-center gap-3 h-full">
+             <div className="flex items-center gap-3 h-full min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                   <img
-                    src={getPaymentVisual({
-                      item: t,
-                      cards,
-                      accounts,
-                    })}
+                    src={getPaymentVisual({ item: t, cards, accounts })}
                     className="w-6 h-6 object-contain"
                   />
                 </div>
@@ -95,6 +104,6 @@ export default function RecentTransactionsCard({
           ))
         )}
       </div>
-    </div>
+    </Card>
   );
 }

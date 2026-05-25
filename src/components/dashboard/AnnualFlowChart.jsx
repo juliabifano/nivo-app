@@ -1,4 +1,5 @@
 import Chart from "react-apexcharts";
+import Card from "../ui/Card";
 
 export default function AnnualFlowChart({
   chartData,
@@ -6,40 +7,37 @@ export default function AnnualFlowChart({
   summary,
   formatCurrency,
 }) {
+
+  const isMobile = window.innerWidth < 640;
+
   return (
-    <div className="col-span-8 bg-white/5 border border-white/10 rounded-[28px] p-5 shadow-lg min-w-0 overflow-hidden">
-      <div className="flex items-start justify-between mb-4">
+    <Card hover="subtle" className="p-4 lg:p-5 min-w-0 h-full overflow-hidden">
+      <div className="flex flex-col lg:flex-row items-start justify-between gap-4 mb-1">
         <div>
-          <p className="text-sm text-gray-400">
+          <p className="text-[15px] font-medium text-gray-300">
             Fluxo financeiro anual
           </p>
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[11px] text-gray-500/80 mt-1">
             Comparativo de receitas e despesas
           </p>
 
           <div className="flex items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-              <span className="text-xs text-gray-400">
-                Receitas
-              </span>
+              <span className="text-xs text-gray-400">Receitas</span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-              <span className="text-xs text-gray-400">
-                Despesas
-              </span>
+              <span className="text-xs text-gray-400">Despesas</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 w-[520px]">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-[520px]">
           <div className="bg-white/5 rounded-2xl p-3">
-            <p className="text-xs text-gray-400">
-              Receitas
-            </p>
+            <p className="text-xs text-gray-400">Receitas</p>
 
             <p className="text-emerald-400 font-semibold">
               {formatCurrency(summary.receitas)}
@@ -47,9 +45,7 @@ export default function AnnualFlowChart({
           </div>
 
           <div className="bg-white/5 rounded-2xl p-3">
-            <p className="text-xs text-gray-400">
-              Despesas
-            </p>
+            <p className="text-xs text-gray-400">Despesas</p>
 
             <p className="text-red-400 font-semibold">
               {formatCurrency(summary.despesas)}
@@ -57,15 +53,11 @@ export default function AnnualFlowChart({
           </div>
 
           <div className="bg-white/5 rounded-2xl p-3">
-            <p className="text-xs text-gray-400">
-              Saldo
-            </p>
+            <p className="text-xs text-gray-400">Saldo</p>
 
             <p
               className={`font-semibold ${
-                summary.saldo >= 0
-                  ? "text-emerald-400"
-                  : "text-red-400"
+                summary.saldo >= 0 ? "text-emerald-400" : "text-red-400"
               }`}
             >
               {formatCurrency(summary.saldo)}
@@ -76,19 +68,15 @@ export default function AnnualFlowChart({
 
       <Chart
         type="area"
-        height={220}
+        height={isMobile ? 180 : 230}
         series={[
           {
             name: "Receitas",
-            data: chartData.map((d) =>
-              Number(d.receita || 0),
-            ),
+            data: chartData.map((d) => Number(d.receita || 0)),
           },
           {
             name: "Despesas",
-            data: chartData.map((d) =>
-              Number(d.despesa || 0),
-            ),
+            data: chartData.map((d) => Number(d.despesa || 0)),
           },
         ]}
         options={{
@@ -102,8 +90,8 @@ export default function AnnualFlowChart({
               enabled: true,
               top: 0,
               left: 0,
-              blur: 6,
-              opacity: 0.18,
+              blur: 4,
+              opacity: 0.1,
             },
           },
 
@@ -111,14 +99,13 @@ export default function AnnualFlowChart({
             xaxis: [
               {
                 x: currentMonthLabel,
-                borderColor:
-                  "rgba(255,255,255,0.16)",
-                strokeDashArray: 5,
+                borderColor: "rgba(255,255,255,0.035)",
+                strokeDashArray: 3,
               },
             ],
           },
 
-          colors: ["#00F5B0", "#FF5C7A"],
+          colors: ["#2EE6B8", "#FF6B87"],
 
           stroke: {
             show: true,
@@ -134,7 +121,7 @@ export default function AnnualFlowChart({
               type: "vertical",
               shadeIntensity: 1,
               inverseColors: false,
-              opacityFrom: 0.25,
+              opacityFrom: 0.22,
               opacityTo: 0.01,
               stops: [0, 100],
             },
@@ -150,13 +137,12 @@ export default function AnnualFlowChart({
           },
 
           grid: {
-            borderColor:
-              "rgba(255,255,255,0.06)",
+            borderColor: "rgba(255,255,255,0.06)",
 
             strokeDashArray: 5,
 
             padding: {
-              top: 10,
+              top: -8,
               left: 8,
               right: 8,
               bottom: 0,
@@ -165,9 +151,7 @@ export default function AnnualFlowChart({
 
           xaxis: {
             categories: chartData.map(
-              (d) =>
-                d.mes.charAt(0).toUpperCase() +
-                d.mes.slice(1),
+              (d) => d.mes.charAt(0).toUpperCase() + d.mes.slice(1),
             ),
 
             labels: {
@@ -194,8 +178,7 @@ export default function AnnualFlowChart({
                 fontSize: "11px",
               },
 
-              formatter: (val) =>
-                `R$ ${(val / 1000).toFixed(0)}k`,
+              formatter: (val) => `R$ ${(val / 1000).toFixed(0)}k`,
             },
 
             forceNiceScale: true,
@@ -205,10 +188,7 @@ export default function AnnualFlowChart({
             shared: true,
             intersect: false,
 
-            custom: ({
-              series,
-              dataPointIndex,
-            }) => {
+            custom: ({ series, dataPointIndex }) => {
               const meses = [
                 "Janeiro",
                 "Fevereiro",
@@ -224,11 +204,9 @@ export default function AnnualFlowChart({
                 "Dezembro",
               ];
 
-              const receitas =
-                series[0][dataPointIndex];
+              const receitas = series[0][dataPointIndex];
 
-              const despesas =
-                series[1][dataPointIndex];
+              const despesas = series[1][dataPointIndex];
 
               return `
                 <div class="nivo-tooltip">
@@ -267,6 +245,6 @@ export default function AnnualFlowChart({
           },
         }}
       />
-    </div>
+    </Card>
   );
 }

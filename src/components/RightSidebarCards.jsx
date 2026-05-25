@@ -6,6 +6,8 @@ import { useAccounts } from "../contexts/AccountContext";
 export default function RightSidebarCards({
   editandoCartao,
   setEditandoCartao,
+  isMobile = false,
+  setShowMobileForm,
 }) {
   const { cards, add, update } = useCards();
   const { accounts } = useAccounts();
@@ -96,6 +98,10 @@ export default function RightSidebarCards({
       diaReset: "",
       accountId: "",
     });
+
+    if (isMobile) {
+      setShowMobileForm(false);
+    }
   };
 
   const validarCartao = (num) => {
@@ -134,14 +140,32 @@ export default function RightSidebarCards({
   };
 
   return (
-    <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40 bg-[#0B0F1A]/70 p-5 space-y-3 rounded-2xl shadow-xl border border-gray-800 backdrop-blur-md">
+    <div
+      className={
+        isMobile
+          ? "w-full p-5 space-y-4 pb-32"
+          : "fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40 bg-[#0B0F1A]/70 p-5 space-y-3 rounded-2xl shadow-xl border border-gray-800 backdrop-blur-md"
+      }
+    >
       <h2 className="text-lg font-semibold mb-4">
         {editandoCartao ? "Editar cartão" : "Adicionar cartão"}
       </h2>
 
       {/* NOME */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg"
+        }
         placeholder="Nome do cartão"
         value={form.nome}
         onChange={(e) => setForm({ ...form, nome: e.target.value })}
@@ -149,7 +173,19 @@ export default function RightSidebarCards({
 
       {/* NÚMERO */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg"
+        }
         placeholder="Número do cartão (opcional)"
         value={form.numeroCartao || ""}
         maxLength={19}
@@ -162,7 +198,19 @@ export default function RightSidebarCards({
 
       {/* BANCO */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        }
         value={form.banco}
         onChange={(e) => {
           const banco = e.target.value;
@@ -191,7 +239,19 @@ export default function RightSidebarCards({
 
       {/* CONTA */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        }
         value={form.accountId}
         onChange={(e) => setForm({ ...form, accountId: e.target.value })}
       >
@@ -208,7 +268,19 @@ export default function RightSidebarCards({
 
       {/* TIPO */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        }
         value={form.tipo}
         onChange={(e) => {
           const tipo = e.target.value;
@@ -235,7 +307,19 @@ export default function RightSidebarCards({
         <>
           {/* SALDO */}
           <input
-            className="w-full p-2 bg-[#111827] rounded-lg"
+            className={
+              isMobile
+                ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+                : "w-full p-2 bg-[#111827] rounded-lg"
+            }
             type="number"
             placeholder="Saldo inicial"
             value={form.saldoInicial || ""}
@@ -244,7 +328,19 @@ export default function RightSidebarCards({
 
           {/* RESET */}
           <input
-            className="w-full p-2 bg-[#111827] rounded-lg"
+            className={
+              isMobile
+                ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+                : "w-full p-2 bg-[#111827] rounded-lg"
+            }
             type="number"
             placeholder="Dia do reset"
             value={form.diaReset || ""}
@@ -257,7 +353,19 @@ export default function RightSidebarCards({
         <>
           {/* LIMITE */}
           <input
-            className="w-full p-2 bg-[#111827] rounded-lg"
+            className={
+              isMobile
+                ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+                : "w-full p-2 bg-[#111827] rounded-lg"
+            }
             type="number"
             placeholder="Limite"
             value={form.limite}
@@ -266,7 +374,19 @@ export default function RightSidebarCards({
 
           {/* VENCIMENTO */}
           <input
-            className="w-full p-2 bg-[#111827] rounded-lg"
+            className={
+              isMobile
+                ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+                : "w-full p-2 bg-[#111827] rounded-lg"
+            }
             type="number"
             placeholder="Dia do vencimento"
             value={form.vencimento}
@@ -275,7 +395,19 @@ export default function RightSidebarCards({
 
           {/* FECHAMENTO 🔥 */}
           <input
-            className="w-full p-2 bg-[#111827] rounded-lg"
+            className={
+              isMobile
+                ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+                : "w-full p-2 bg-[#111827] rounded-lg"
+            }
             type="number"
             placeholder="Dia do fechamento"
             value={form.fechamento || ""}
@@ -330,7 +462,20 @@ export default function RightSidebarCards({
       {/* BOTÃO */}
       <button
         onClick={handleAdd}
-        className="cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      rounded-2xl
+      bg-emerald-400
+      text-black
+      font-medium
+      active:scale-[0.98]
+      transition-all
+    `
+            : "cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"
+        }
       >
         {editandoCartao ? "Salvar alterações" : "Adicionar"}
       </button>
@@ -347,6 +492,7 @@ export default function RightSidebarCards({
         <button
           onClick={() => {
             setEditandoCartao(null);
+
             setForm({
               nome: "",
               banco: "",
@@ -359,8 +505,24 @@ export default function RightSidebarCards({
               diaReset: "",
               accountId: "",
             });
+
+            if (isMobile) {
+              setShowMobileForm(false);
+            }
           }}
-          className="cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg"
+          className={
+            isMobile
+              ? `
+        w-full
+        h-12
+        rounded-2xl
+        bg-white/10
+        text-white
+        active:scale-[0.98]
+        transition-all
+      `
+              : "cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg"
+          }
         >
           Cancelar edição
         </button>

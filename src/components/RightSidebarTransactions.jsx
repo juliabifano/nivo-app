@@ -9,6 +9,8 @@ export default function RightSidebarTransactions({
   onUpdate,
   editingTransaction,
   setEditingTransaction,
+  isMobile = false,
+  setShowMobileForm,
 }) {
   const { cards } = useCards();
   const { accounts } = useAccounts();
@@ -48,6 +50,9 @@ export default function RightSidebarTransactions({
     }
 
     resetForm();
+    if (isMobile) {
+      setShowMobileForm(false);
+    }
   }
 
   function resetForm() {
@@ -83,14 +88,32 @@ export default function RightSidebarTransactions({
   }, [editingTransaction]);
 
   return (
-    <div className="fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto space-y-3">
+    <div
+      className={
+        isMobile
+          ? "w-full p-5 space-y-4"
+          : "fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto space-y-3"
+      }
+    >
       <h2 className="text-lg font-semibold mb-4">
         {editingTransaction ? "Editar lançamento" : "Novo lançamento"}
       </h2>
 
       {/* DESCRIÇÃO */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg"
+        }
         placeholder="Descrição"
         value={form.descricao}
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
@@ -104,7 +127,19 @@ export default function RightSidebarTransactions({
 
       {/* VALOR */}
       <input
-        className="w-full p-2 bg-[#111827] rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg"
+        }
         type="number"
         placeholder="Valor"
         value={form.valor}
@@ -139,7 +174,19 @@ export default function RightSidebarTransactions({
 
       {/* PAGAMENTO */}
       <select
-        className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+        }
         value={form.formaPagamento}
         onChange={(e) => {
           const formaPagamento = e.target.value;
@@ -166,7 +213,19 @@ export default function RightSidebarTransactions({
 
       {["credito", "debito", "vale"].includes(form.formaPagamento) && (
         <select
-          className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+          className={
+            isMobile
+              ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+              : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+          }
           value={form.cartaoId}
           onChange={(e) => {
             const cartaoId = e.target.value;
@@ -212,7 +271,19 @@ export default function RightSidebarTransactions({
 
       {form.formaPagamento === "credito" && (
         <input
-          className="w-full p-2 bg-[#111827] rounded-lg"
+          className={
+            isMobile
+              ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      outline-none
+    `
+              : "w-full p-2 bg-[#111827] rounded-lg"
+          }
           type="number"
           placeholder="Parcelas"
           value={form.parcelas}
@@ -222,7 +293,19 @@ export default function RightSidebarTransactions({
 
       {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
         <select
-          className="w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+          className={
+            isMobile
+              ? `
+      w-full
+      h-12
+      px-4
+      bg-[#111827]
+      border border-white/[0.06]
+      rounded-2xl
+      cursor-pointer
+    `
+              : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
+          }
           value={form.accountId}
           onChange={(e) => setForm({ ...form, accountId: e.target.value })}
         >
@@ -239,7 +322,20 @@ export default function RightSidebarTransactions({
       {/* BOTÃO */}
       <button
         onClick={handleSubmit}
-        className="w-full bg-emerald-400 text-black p-2 rounded-lg"
+        className={
+          isMobile
+            ? `
+      w-full
+      h-12
+      rounded-2xl
+      bg-emerald-400
+      text-black
+      font-medium
+      active:scale-[0.98]
+      transition-all
+    `
+            : "w-full bg-emerald-400 text-black p-2 rounded-lg"
+        }
       >
         {editingTransaction ? "Salvar" : "Adicionar"}
       </button>
@@ -249,8 +345,24 @@ export default function RightSidebarTransactions({
           onClick={() => {
             setEditingTransaction(null);
             resetForm();
+
+            if (isMobile) {
+              setShowMobileForm(false);
+            }
           }}
-          className="w-full bg-gray-700 text-white p-2 rounded-lg"
+          className={
+            isMobile
+              ? `
+        w-full
+        h-12
+        rounded-2xl
+        bg-white/10
+        text-white
+        active:scale-[0.98]
+        transition-all
+      `
+              : "w-full bg-gray-700 text-white p-2 rounded-lg"
+          }
         >
           Cancelar
         </button>

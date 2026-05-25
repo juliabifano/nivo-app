@@ -1,5 +1,6 @@
 import { getBank } from "../../data/banks";
 import Card3D from "../cards/Card3D";
+import { motion } from "framer-motion";
 
 export default function HeroCardSection({
   featuredCard,
@@ -8,13 +9,42 @@ export default function HeroCardSection({
   formatCurrency,
 }) {
   return (
-    <div className="col-span-6 bg-white/5 border border-white/10 rounded-[28px] p-6 shadow-lg overflow-hidden">
-      <div className="flex h-full gap-5 items-center">
-        <div className="w-[380px] flex-shrink-0">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      transition={{
+        duration: 0.35,
+        ease: "easeOut",
+      }}
+      className="
+      bg-white/5
+      border border-white/10
+      rounded-[28px]
+      p-3 sm:p-6
+      overflow-hidden
+      shadow-[0_35px_120px_rgba(0,0,0,0.38)]
+      transition-shadow duration-300
+      min-w-0
+      h-auto
+      xl:h-full
+      xl:max-h-[340px]
+    "
+    >
+      <div className="flex flex-col xl:flex-row xl:h-full gap-4 sm:gap-5 items-center">
+        <div className="w-full max-w-[360px] lg:max-w-[340px] lg:w-[340px] flex-shrink-0">
           {!featuredCard ? (
-            <p className="text-gray-500 text-sm">
-              Nenhum cartão usado.
-            </p>
+            <div className="min-h-[300px] lg:h-full flex flex-col items-center justify-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
+                <span className="text-2xl">💳</span>
+              </div>
+
+              <p className="text-white font-medium">Nenhum cartão utilizado</p>
+
+              <p className="text-xs text-gray-500 mt-1 max-w-[220px]">
+                Seus cartões mais usados aparecerão aqui automaticamente.
+              </p>
+            </div>
           ) : (
             (() => {
               const bank = getBank(featuredCard.banco);
@@ -34,34 +64,36 @@ export default function HeroCardSection({
                 default: "bg-white/10",
               };
 
-              const glowColor =
-                glowMap[bank?.key] || glowMap.default;
+              const shadowMap = {
+                nubank: "hover:shadow-[0_30px_90px_rgba(168,85,247,0.18)]",
+                inter: "hover:shadow-[0_30px_90px_rgba(251,146,60,0.18)]",
+                itau: "hover:shadow-[0_30px_90px_rgba(249,115,22,0.18)]",
+                santander: "hover:shadow-[0_30px_90px_rgba(239,68,68,0.18)]",
+                bradesco: "hover:shadow-[0_30px_90px_rgba(220,38,38,0.18)]",
+                bb: "hover:shadow-[0_30px_90px_rgba(250,204,21,0.16)]",
+                caixa: "hover:shadow-[0_30px_90px_rgba(59,130,246,0.18)]",
+                sicoob: "hover:shadow-[0_30px_90px_rgba(34,197,94,0.18)]",
+                c6: "hover:shadow-[0_30px_90px_rgba(255,255,255,0.10)]",
+                alelo: "hover:shadow-[0_30px_90px_rgba(16,185,129,0.18)]",
+                default: "hover:shadow-[0_30px_90px_rgba(255,255,255,0.10)]",
+              };
+
+              const hoverShadow = shadowMap[bank?.key] || shadowMap.default;
+
+              const glowColor = glowMap[bank?.key] || glowMap.default;
 
               const total = transactions
-                .filter(
-                  (t) =>
-                    String(t.cartaoId) ===
-                    String(featuredCard.id),
-                )
-                .reduce(
-                  (acc, t) =>
-                    acc + Number(t.valor || 0),
-                  0,
-                );
+                .filter((t) => String(t.cartaoId) === String(featuredCard.id))
+                .reduce((acc, t) => acc + Number(t.valor || 0), 0);
 
               const limit =
                 featuredCard.tipo === "vale"
-                  ? Number(
-                      featuredCard.saldo ||
-                        featuredCard.saldoInicial ||
-                        0,
-                    )
+                  ? Number(featuredCard.saldo || featuredCard.saldoInicial || 0)
                   : Number(featuredCard.limite || 0);
 
               const showProgress =
-                ["credito", "multiplo", "vale"].includes(
-                  featuredCard.tipo,
-                ) && limit > 0;
+                ["credito", "multiplo", "vale"].includes(featuredCard.tipo) &&
+                limit > 0;
 
               const percent = showProgress
                 ? Math.min((total / limit) * 100, 100)
@@ -72,7 +104,7 @@ export default function HeroCardSection({
                   <div
                     className={`
                       absolute inset-[-8px] rounded-2xl blur-xl 
-                      opacity-50 group-hover:opacity-80
+                      opacity-35 group-hover:opacity-55
                       scale-100 group-hover:scale-110
                       transition-all duration-300 ease-out
                       ${glowColor}
@@ -96,14 +128,14 @@ export default function HeroCardSection({
           )}
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <p className="text-sm text-gray-400">
+        <div className="flex-1 min-w-0 flex flex-col justify-center w-full self-stretch">
+          <p className="text-[15px] font-medium text-gray-300">
             Cartão principal
           </p>
 
-          <div className="flex items-center justify-between mt-1">
+          <div className="flex items-start justify-between mt-2 w-full gap-3">
             <div>
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-[26px] sm:text-2xl font-bold leading-tight">
                 {featuredCard?.nome || "Sem cartão"}
               </h2>
 
@@ -114,70 +146,63 @@ export default function HeroCardSection({
               </p>
             </div>
 
-            <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-gray-300">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-400/10 text-emerald-300 border border-emerald-400/10 whitespace-nowrap">
               Principal
             </span>
           </div>
 
           {featuredCardStats && (
-            <div className="mt-5 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
-                  <p className="text-xs text-gray-400">
+            <div className="mt-4 sm:mt-5 space-y-2.5 sm:space-y-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <div className="bg-emerald-400/[0.06] border border-emerald-400/[0.08] rounded-2xl p-2.5 sm:p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-emerald-200/70">
                     Disponível
                   </p>
 
-                  <p className="font-semibold text-emerald-400 mt-1">
-                    {formatCurrency(
-                      featuredCardStats.available,
-                    )}
+                  <p className="text-lg font-semibold text-emerald-300 mt-1 leading-none">
+                    {formatCurrency(featuredCardStats.available)}
                   </p>
                 </div>
 
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
-                  <p className="text-xs text-gray-400">
+                <div className="bg-white/[0.045] border border-white/[0.06] rounded-2xl p-2.5 sm:p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400">
                     Limite
                   </p>
-
-                  <p className="font-semibold mt-1">
-                    {formatCurrency(
-                      featuredCardStats.limit,
-                    )}
+                  <p className="text-lg font-semibold mt-1 leading-none">
+                    {formatCurrency(featuredCardStats.limit)}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
-                <div className="flex justify-between items-center">
-                  <p className="text-xs text-gray-400">
-                    Último uso
-                  </p>
+              <div className="bg-white/[0.045] border border-white/[0.06] rounded-2xl p-2.5 sm:p-3 sm:mt-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400">
+                      Último uso
+                    </p>
 
-                  <p className="text-xs text-gray-500">
-                    {featuredCardStats.lastUse?.data
-                      ? new Date(
-                          featuredCardStats.lastUse.data,
-                        ).toLocaleDateString(
-                          "pt-BR",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                          },
-                        )
-                      : ""}
-                  </p>
+                    <p className="text-sm font-medium mt-2 truncate text-white">
+                      {featuredCardStats.lastUse?.descricao ||
+                        "Sem uso recente"}
+                    </p>
+                  </div>
+
+                  {featuredCardStats.lastUse?.data && (
+                    <span className="text-[10px] px-2 py-1 rounded-full bg-white/[0.05] text-gray-400 whitespace-nowrap">
+                      {new Date(
+                        featuredCardStats.lastUse.data,
+                      ).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </span>
+                  )}
                 </div>
-
-                <p className="font-medium mt-1 truncate">
-                  {featuredCardStats.lastUse
-                    ?.descricao ||
-                    "Sem uso recente"}
-                </p>
               </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

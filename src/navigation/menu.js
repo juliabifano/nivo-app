@@ -1,45 +1,45 @@
-import home from "../assets/icons/home.svg";
-import budget from "../assets/icons/budget.svg";
-import card from "../assets/icons/card.svg";
-import transfer from "../assets/icons/transfer.svg";
-import calendar from "../assets/icons/Calendar.svg";
-import cards from "../assets/icons/cards.svg";
-import note from "../assets/icons/Note.svg";
+import HomeIcon from "../assets/icons/home.svg?react";
+import BudgetIcon from "../assets/icons/budget.svg?react";
+import CardIcon from "../assets/icons/card.svg?react";
+import TransferIcon from "../assets/icons/transfer.svg?react";
+import CalendarIcon from "../assets/icons/Calendar.svg?react";
+import CardsIcon from "../assets/icons/cards.svg?react";
+import NoteIcon from "../assets/icons/Note.svg?react";
 
 export default [
   {
     label: "Dashboard",
     path: "/dashboard",
-    icon: home,
+    icon: HomeIcon,
   },
   {
     label: "Orçamento Anual",
     path: "/annual",
-    icon: budget,
+    icon: BudgetIcon,
   },
   {
     label: "Orçamento Mensal",
     path: "/monthly",
-    icon: note,
+    icon: NoteIcon,
   },
   {
     label: "Transações",
     path: "/transactions",
-    icon: transfer,
+    icon: TransferIcon,
   },
   {
     label: "Cartões",
     path: "/cards",
-    icon: card,
+    icon: CardIcon,
   },
   {
     label: "Contas",
     path: "/accounts",
-    icon: cards,
+    icon: CardsIcon,
   },
   {
     label: "Agenda",
     path: "/schedule",
-    icon: calendar,
+    icon: CalendarIcon,
   },
 ];

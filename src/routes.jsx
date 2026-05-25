@@ -9,6 +9,7 @@ import Transactions from "./pages/Transactions";
 import Cards from "./pages/Cards";
 import Accounts from "./pages/Accounts";
 import Schedule from "./pages/Schedule";
+import More from "./pages/More";
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function AppRoutes() {
         <Route path="/cards" element={<Cards />} />
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/schedule" element={<Schedule />} />
+        <Route path="/more" element={<More />} />
       </Route>
     </Routes>
   );

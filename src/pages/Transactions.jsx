@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTransactions } from "../contexts/TransactionContext";
 import TransactionList from "../components/TransactionList";
 import RightSidebarTransactions from "../components/RightSidebarTransactions";
+import BottomSheet from "../components/ui/BottomSheet";
+import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { mapTransactionsWithCategory } from "../core/selectors/categorySelectors";
 import { useCategories } from "../contexts/CategoryContext";
 import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
@@ -20,6 +22,7 @@ export default function Transactions() {
   const { items: budgetItems = [] } = useBudgetAnnual();
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
+  const [showMobileForm, setShowMobileForm] = useState(false);
 
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -198,14 +201,51 @@ export default function Transactions() {
       .toUpperCase();
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden text-white">
-      {/* CENTRO */}
-      <div className="flex-1 p-6 overflow-y-auto pr-[360px] flex justify-center mb-5">
-        <div className="w-full max-w-3xl flex flex-col gap-6">
-          <h1 className="text-2xl font-semibold">Lançamentos</h1>
+  const handleEditMobile = (transaction) => {
+    setEditingTransaction(transaction);
+    setShowMobileForm(true);
+  };
 
-          <div className="flex gap-2 flex-wrap">
+  return (
+    <div className="relative flex flex-col lg:flex-row h-full overflow-hidden text-white">
+      {/* CENTRO */}
+      <div
+        className="
+    flex-1
+    min-h-0
+    overflow-y-auto
+    px-4
+    pt-5
+    pb-32
+    lg:p-6
+    lg:pr-[360px]
+    flex
+    justify-center
+    no-scrollbar
+    mb-5
+  "
+      >
+        <div className="w-full max-w-3xl flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="md:hidden w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0">
+                <img
+                  src="/logo-ni-branca.svg"
+                  className="w-6 h-6 object-contain"
+                />
+              </div>
+
+              <div>
+                <h1 className="text-2xl font-semibold">Transações</h1>
+
+                <p className="text-sm text-gray-400 mt-1">
+                  Seus lançamentos do mês
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1 shrink-0">
             {[
               { label: "Todas", value: "todos" },
               { label: "Hoje", value: "hoje" },
@@ -215,7 +255,7 @@ export default function Transactions() {
               <button
                 key={p.value}
                 onClick={() => setFilters({ ...filters, periodo: p.value })}
-                className={`px-3 py-1 rounded-full text-sm cursor-pointer ${
+                className={`shrink-0 px-3 py-1.5 rounded-full text-sm cursor-pointer ${
                   filters.periodo === p.value
                     ? "bg-emerald-400 text-black"
                     : "bg-white/10 text-gray-300 hover:bg-white/20"
@@ -228,9 +268,25 @@ export default function Transactions() {
 
           <button
             onClick={() => setShowFilters((prev) => !prev)}
-            className=" text-sm text-gray-400 hover:text-white w-fit cursor-pointer"
+            className="
+    flex items-center gap-2
+    text-sm
+    text-gray-400
+    hover:text-white
+    transition-colors
+    w-fit
+    cursor-pointer
+  "
           >
-            Filtros Avançados
+            <span>Filtros avançados</span>
+
+            <motion.span
+              animate={{ rotate: showFilters ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="text-xs"
+            >
+              ▼
+            </motion.span>
           </button>
 
           {activeFilters.length > 0 && (
@@ -290,7 +346,20 @@ export default function Transactions() {
           )}
 
           {showFilters && (
-            <div className="bg-[#111827] border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+            <div
+              className="
+    relative
+    bg-white/[0.04]
+    border border-white/[0.08]
+    rounded-[28px]
+    p-4
+    flex flex-col gap-3
+    backdrop-blur-xl
+  "
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(62,242,194,0.08),transparent_55%)] pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-400/10 blur-3xl rounded-full pointer-events-none" />
+
               {/* Tipo */}
               <div className="flex gap-2">
                 {[
@@ -414,6 +483,7 @@ export default function Transactions() {
                   </option>
                 ))}
               </select>
+              <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-400/10 blur-3xl rounded-full pointer-events-none" />
 
               {/* Reset */}
               <button
@@ -458,22 +528,62 @@ export default function Transactions() {
                     <TransactionList
                       transactions={items}
                       onDelete={remove}
-                      onEdit={setEditingTransaction}
+                      onEdit={
+                        window.innerWidth < 1024
+                          ? handleEditMobile
+                          : setEditingTransaction
+                      }
                     />
                   </motion.div>
                 ))}
             </div>
           </AnimatePresence>
+          <div className="h-36 lg:hidden shrink-0" />
         </div>
       </div>
 
       {/* SIDEBAR */}
-      <RightSidebarTransactions
-        onAdd={add}
-        onUpdate={update}
-        editingTransaction={editingTransaction}
-        setEditingTransaction={setEditingTransaction}
+      <div className="hidden lg:block">
+        <RightSidebarTransactions
+          onAdd={add}
+          onUpdate={update}
+          editingTransaction={editingTransaction}
+          setEditingTransaction={setEditingTransaction}
+        />
+      </div>
+
+      {/* FAB MOBILE */}
+      <FloatingActionButton
+        open={showMobileForm}
+        onClick={() => {
+          if (showMobileForm) {
+            setShowMobileForm(false);
+            setEditingTransaction(null);
+            return;
+          }
+
+          setEditingTransaction(null);
+          setShowMobileForm(true);
+        }}
       />
+
+      {/* DRAWER MOBILE */}
+      <BottomSheet
+        open={showMobileForm}
+        onClose={() => {
+          setShowMobileForm(false);
+          setEditingTransaction(null);
+        }}
+      >
+        <RightSidebarTransactions
+          onAdd={add}
+          onUpdate={update}
+          editingTransaction={editingTransaction}
+          setEditingTransaction={setEditingTransaction}
+          isMobile
+          setShowMobileForm={setShowMobileForm}
+        />
+      </BottomSheet>
     </div>
   );
 }

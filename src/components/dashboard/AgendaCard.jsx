@@ -1,3 +1,5 @@
+import Card from "../ui/Card";
+
 export default function AgendaCard({
   pendingSchedule,
   todayCount,
@@ -5,11 +7,13 @@ export default function AgendaCard({
   formatCurrency,
 }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-[28px] p-5 shadow-lg overflow-hidden h-full flex flex-col">
-      <div className="flex justify-between items-start mb-4">
+    <Card hover="subtle" className="p-4 sm:p-5 h-full flex flex-col">
+      <div className="flex items-start justify-between gap-3 py-3">
         <div>
-          <p className="text-sm text-gray-400">Agenda</p>
-          <p className="text-xs text-gray-500 mt-1">Próximos pagamentos</p>
+          <p className="text-[15px] font-medium text-gray-300">Agenda</p>
+          <p className="text-[11px] text-gray-500/80 mt-1">
+            Próximos pagamentos
+          </p>
         </div>
 
         <div className="flex gap-2 text-xs">
@@ -41,7 +45,7 @@ export default function AgendaCard({
             return (
               <div
                 key={item.paymentId}
-                className={`flex justify-between items-center py-3 ${
+                className={`flex items-start justify-between gap-3 py-3 ${
                   index !== pendingSchedule.length - 1
                     ? "border-b border-white/[0.06]"
                     : ""
@@ -52,7 +56,7 @@ export default function AgendaCard({
                     {item.descricao}
                   </p>
 
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-[11px] text-gray-400 mt-1">
                     {new Date(item.data).toLocaleDateString("pt-BR", {
                       day: "2-digit",
                       month: "short",
@@ -62,7 +66,7 @@ export default function AgendaCard({
 
                 <div className="text-right shrink-0">
                   <p
-                    className={`text-sm font-semibold ${
+                    className={`text-[13px] sm:text-sm font-semibold ${
                       item.tipo === "receita"
                         ? "text-emerald-400"
                         : "text-red-400"
@@ -73,7 +77,7 @@ export default function AgendaCard({
                   </p>
 
                   <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-[9px] uppercase mt-1 ${
+                    className={`inline-block px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] uppercase mt-1 ${
                       statusStyle[item.status] || statusStyle.pendente
                     }`}
                   >
@@ -85,6 +89,6 @@ export default function AgendaCard({
           })
         )}
       </div>
-    </div>
+    </Card>
   );
 }

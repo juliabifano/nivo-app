@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { getBank } from "../../data/banks";
+import ActionMenu from "../ui/ActionMenu";
 
 export default function CardItem({
   c,
@@ -9,6 +10,9 @@ export default function CardItem({
   setConfirmDelete,
   formatCurrency,
   formatCardNumber,
+  index,
+  activeIndex,
+  positionOffset = 0,
 }) {
   const banco = getBank(c.banco);
 
@@ -58,60 +62,126 @@ export default function CardItem({
 
   return (
     <motion.div
-      onClick={() => setSelected(c)}
-      className="relative w-[380px] h-[220px] rounded-2xl p-5 cursor-pointer overflow-hidden group"
+      onClick={() => {
+        if (window.innerWidth < 1024 && positionOffset !== 0) return;
+        setSelected(c);
+      }}
+      className="
+        relative
+        snap-center
+        shrink-0
+        mx-auto
+        mb-6
+        w-[78vw]
+        max-w-[320px]
+        h-[210px]
+        lg:mx-0
+        lg:mb-0
+        lg:w-[380px]
+        lg:min-w-[380px]
+        lg:max-w-none
+        lg:h-[220px]
+        rounded-2xl
+        p-5
+        cursor-pointer
+        overflow-visible
+        group
+      "
       style={{
         backgroundImage: `url(${imagem})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         boxShadow: `0 10px 40px ${cor}40`,
+        transformStyle: "preserve-3d",
       }}
-      whileHover={{ scale: 1.04, rotateX: 4, rotateY: -4 }}
-      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+      animate={
+        window.innerWidth < 1024
+          ? {
+              scale:
+                positionOffset === 0
+                  ? 1
+                  : positionOffset === 1 || positionOffset === -1
+                    ? 0.88
+                    : 0.78,
+              opacity:
+                positionOffset === 0
+                  ? 1
+                  : positionOffset === 1 || positionOffset === -1
+                    ? 0.28
+                    : 0,
+              y: positionOffset * 170,
+              rotateX: positionOffset > 0 ? -28 : positionOffset < 0 ? 28 : 0,
+              rotateZ: positionOffset > 0 ? -2 : positionOffset < 0 ? 2 : 0,
+              zIndex: 20 - Math.abs(positionOffset),
+            }
+          : {
+              scale: 1,
+              opacity: 1,
+              rotateY: 0,
+              rotateZ: 0,
+              y: 0,
+            }
+      }
+      whileTap={{ scale: 0.96 }}
+      transition={{
+        type: "spring",
+        stiffness: 180,
+        damping: 20,
+        mass: 0.9,
+      }}
     >
-      <div className="absolute top-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition z-20">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setEditandoCartao(c);
-          }}
-          className="text-xs bg-white/20 px-2 py-1 rounded cursor-pointer backdrop-blur"
-        >
-          Editar
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setConfirmDelete(c);
-          }}
-          className="text-xs bg-red-500/70 px-2 py-1 rounded cursor-pointer backdrop-blur"
-        >
-          Excluir
-        </button>
+      <div className="absolute inset-0 rounded-2xl overflow-hidden">
+        <div className="absolute inset-0 bg-black/30" />
       </div>
-      <div className="absolute inset-0 bg-black/30" />
 
-      <img
-        src={logo}
-        className="absolute top-4 right-4 w-10 h-10 object-contain z-10"
-      />
+      <div
+        className="absolute top-4 right-4 z-40 flex items-start gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img src={logo} className="w-10 h-10 object-contain" />
 
-      <div className="text-white relative z-10">
+        <ActionMenu
+          actions={[
+            {
+              label: "Editar",
+              onClick: () => setEditandoCartao(c),
+            },
+            {
+              label: "Excluir",
+              danger: true,
+              onClick: () => setConfirmDelete(c),
+            },
+          ]}
+        />
+      </div>
+
+      <motion.div
+        animate={{
+          filter:
+            window.innerWidth >= 1024
+              ? "blur(0px)"
+              : positionOffset === 0
+                ? "blur(0px) brightness(1)"
+                : "blur(2px) brightness(0.75)",
+        }}
+        transition={{ duration: 0.2 }}
+        className="text-white relative z-10"
+      >
         <p className="text-xs opacity-70 uppercase">{nomeBanco || c.banco}</p>
 
         <p className="text-xs opacity-60 mt-1">{getTipoLabel()}</p>
 
         <p className="font-semibold text-lg mt-1">{c.nome}</p>
 
-        <p className="text-xs mt-2 opacity-60 font-mono tracking-widest">
+        <p className="text-xs mt-1 opacity-60 font-mono tracking-widest">
           {formatCardNumber(c.numeroCartao)}
         </p>
 
-        <div className="mt-2">
+        <div className="mt-1">
           {(c.tipo === "credito" || c.tipo === "multiplo") && (
             <>
               <p className="text-sm">Limite: {formatCurrency(limite)}</p>
+
               <p className="text-xs opacity-70">
                 Disponível: {formatCurrency(disponivel)}
               </p>
@@ -131,6 +201,7 @@ export default function CardItem({
           {c.tipo === "vale" && (
             <>
               <p className="text-sm">Saldo: {formatCurrency(saldo)}</p>
+
               <p className="text-xs opacity-70">
                 Restante: {formatCurrency(disponivel)}
               </p>
@@ -146,7 +217,7 @@ export default function CardItem({
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
