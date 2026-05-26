@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function CardInvoice({
   selected,
   transactions,
+  budgetItems = [],
   formatCurrency,
   getInvoicePeriod,
   getCurrentInvoiceDate,
@@ -17,90 +18,97 @@ export default function CardInvoice({
   groupFade,
   staggerContainer,
 }) {
-  const { mes, ano } =
-    invoiceDate || getCurrentInvoiceDate(selected);
+  const { mes, ano } = invoiceDate || getCurrentInvoiceDate(selected);
 
   const fatura = generateInvoice({
     transactions,
+    budgetItems,
     card: selected,
     month: mes,
     year: ano,
   });
 
-  const { start, end } = getInvoicePeriod(
-    mes,
-    ano,
-    selected.fechamento,
-  );
+  const { start, end } = getInvoicePeriod(mes, ano, selected.fechamento);
 
   return (
-    <div className="mt-3 text-white overflow-x-hidden">
-      {/* header */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => {
-            setDirection(-1);
+    <div className="mt-4 text-white overflow-x-hidden">
+      <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.06] backdrop-blur-xl p-4">
+        <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-red-400/10 blur-3xl" />
 
-            setInvoiceDate((prev) => {
-              const base =
-                prev || getCurrentInvoiceDate(selected);
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <button
+            onClick={() => {
+              setDirection(-1);
 
-              let mes = base.mes - 1;
-              let ano = base.ano;
+              setInvoiceDate((prev) => {
+                const base = prev || getCurrentInvoiceDate(selected);
 
-              if (mes < 1) {
-                mes = 12;
-                ano -= 1;
-              }
+                let mes = base.mes - 1;
+                let ano = base.ano;
 
-              return { mes, ano };
-            });
-          }}
-          className="text-white/60 hover:text-white text-sm cursor-pointer"
-        >
-          ←
-        </button>
+                if (mes < 1) {
+                  mes = 12;
+                  ano -= 1;
+                }
 
-        <p className="text-white font-semibold">
-          {new Date(ano, mes - 1).toLocaleDateString("pt-BR", {
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
+                return { mes, ano };
+              });
+            }}
+            className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-white/70 hover:text-white hover:bg-white/15 transition cursor-pointer"
+          >
+            ←
+          </button>
 
-        <button
-          onClick={() => {
-            setDirection(1);
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.18em] text-white/45">
+              Fatura
+            </p>
 
-            setInvoiceDate((prev) => {
-              const base =
-                prev || getCurrentInvoiceDate(selected);
+            <p className="text-lg font-semibold capitalize mt-1">
+              {new Date(ano, mes - 1).toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
 
-              let mes = base.mes + 1;
-              let ano = base.ano;
+          <button
+            onClick={() => {
+              setDirection(1);
 
-              if (mes > 12) {
-                mes = 1;
-                ano += 1;
-              }
+              setInvoiceDate((prev) => {
+                const base = prev || getCurrentInvoiceDate(selected);
 
-              return { mes, ano };
-            });
-          }}
-          className="text-white/60 hover:text-white text-sm cursor-pointer"
-        >
-          →
-        </button>
+                let mes = base.mes + 1;
+                let ano = base.ano;
+
+                if (mes > 12) {
+                  mes = 1;
+                  ano += 1;
+                }
+
+                return { mes, ano };
+              });
+            }}
+            className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-white/70 hover:text-white hover:bg-white/15 transition cursor-pointer"
+          >
+            →
+          </button>
+        </div>
+
+        <div className="relative z-10 mt-4">
+          <p className="text-xs text-white/45">Total da fatura</p>
+
+          <p className="text-2xl font-semibold mt-1">
+            {formatCurrency(fatura.total)}
+          </p>
+
+          <p className="text-xs text-white/45 mt-2">
+            {start.toLocaleDateString("pt-BR")} →{" "}
+            {end.toLocaleDateString("pt-BR")}
+          </p>
+        </div>
       </div>
-
-      <p className="text-sm text-white/60 mb-2">
-        {start.toLocaleDateString("pt-BR")} →{" "}
-        {end.toLocaleDateString("pt-BR")}
-      </p>
-
-      <p className="mb-4 text-white/70">
-        Total: {formatCurrency(fatura.total)}
-      </p>
 
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
@@ -111,37 +119,86 @@ export default function CardInvoice({
           animate="center"
           exit="exit"
           transition={{ duration: 0.25 }}
-          className="flex flex-col gap-4"
+          className="mt-4"
         >
           {fatura.transactions.length === 0 ? (
-            <p className="text-white/50 text-sm text-center mt-4">
-              Nenhuma compra nesta fatura
-            </p>
+            <div className="h-32 flex items-center justify-center rounded-[24px] border border-white/10 bg-white/[0.05]">
+              <p className="text-white/45 text-sm">
+                Nenhuma compra nesta fatura
+              </p>
+            </div>
           ) : (
-            Object.entries(
-              groupByDate(
-                [...fatura.transactions].sort(
-                  (a, b) => new Date(a.data) - new Date(b.data),
-                ),
-              ),
-            ).map(([date, items]) => (
-              <motion.div key={date} variants={groupFade}>
-                <div className="text-xs text-white/40 font-semibold">
-                  {formatDateLabel(date)}
-                </div>
+            <motion.div
+              variants={groupFade}
+              className="
+          relative
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-white/10
+          bg-white/[0.05]
+          backdrop-blur-xl
+          p-4
+        "
+            >
+              <div className="flex flex-col">
+                {Object.entries(
+                  groupByDate(
+                    [...fatura.transactions].sort(
+                      (a, b) => new Date(a.data) - new Date(b.data),
+                    ),
+                  ),
+                ).map(([date, items], groupIndex, groups) => (
+                  <div key={date}>
+                    
 
-                {items.map((t) => (
-                  <motion.div
-                    key={t.id}
-                    variants={staggerContainer}
-                    className="flex justify-between py-2"
-                  >
-                    <span>{t.descricao}</span>
-                    <span>{formatCurrency(t.valor)}</span>
-                  </motion.div>
+                    <div className="flex flex-col">
+                      {items.map((t, index) => {
+                        const isLast =
+                          groupIndex === groups.length - 1 &&
+                          index === items.length - 1;
+
+                        return (
+                          <motion.div
+                            key={t.id}
+                            variants={staggerContainer}
+                            className={`
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                        py-3
+                        ${!isLast ? "border-b border-white/[0.07]" : ""}
+                      `}
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {t.descricao}
+                              </p>
+
+                              <p className="text-xs text-white/40 mt-1">
+                                {formatDateLabel(
+                                  `${new Date(t.data).getFullYear()}-${String(
+                                    new Date(t.data).getMonth() + 1,
+                                  ).padStart(
+                                    2,
+                                    "0",
+                                  )}-${String(new Date(t.data).getDate()).padStart(2, "0")}`,
+                                )}
+                              </p>
+                            </div>
+
+                            <p className="text-sm font-semibold text-white/85 shrink-0">
+                              {formatCurrency(t.valor)}
+                            </p>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
-              </motion.div>
-            ))
+              </div>
+            </motion.div>
           )}
         </motion.div>
       </AnimatePresence>

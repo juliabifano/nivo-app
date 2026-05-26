@@ -1,3 +1,5 @@
+import { useTheme } from "../../theme/useTheme";
+
 export default function SectionHeader({
   title,
   subtitle,
@@ -5,6 +7,8 @@ export default function SectionHeader({
   action,
   className = "",
 }) {
+  const { theme } = useTheme();
+
   return (
     <div
       className={`
@@ -15,27 +19,29 @@ export default function SectionHeader({
       <div className="flex items-center gap-3 min-w-0">
         {icon && (
           <div
-            className="
-            md:hidden
-            w-10 h-10
-            rounded-2xl
-            bg-white/[0.04]
-            border border-white/[0.08]
-            flex items-center justify-center
-            shrink-0
-          "
+            className={`
+              md:hidden
+              w-10 h-10
+              rounded-2xl
+              ${theme.surface}
+              border ${theme.border}
+              flex items-center justify-center
+              shrink-0
+            `}
           >
             {icon}
           </div>
         )}
 
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-white truncate">
+          <h1 className={`text-2xl font-semibold truncate ${theme.textPrimary}`}>
             {title}
           </h1>
 
           {subtitle && (
-            <p className="text-sm text-gray-400 mt-1 truncate">{subtitle}</p>
+            <p className={`text-sm mt-1 truncate ${theme.textSecondary}`}>
+              {subtitle}
+            </p>
           )}
         </div>
       </div>

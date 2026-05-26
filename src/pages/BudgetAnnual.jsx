@@ -15,12 +15,14 @@ import SectionHeader from "../components/ui/SectionHeader";
 import BottomSheet from "../components/ui/BottomSheet";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 import GlassTabs from "../components/ui/GlassTabs";
+import { useTheme } from "../theme/useTheme";
 
 export default function BudgetAnnual() {
   const { items = [], add, update, remove } = useBudgetAnnual();
   const { categories } = useCategories();
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
+  const { theme, themeName } = useTheme();
 
   const [monthFilter, setMonthFilter] = useState("todos");
   const [showFilters, setShowFilters] = useState(false);
@@ -127,7 +129,14 @@ export default function BudgetAnnual() {
     monthFilter !== "todos" ? monthFilter.toUpperCase() : null;
 
   return (
-    <div className="relative h-full overflow-hidden px-4 pt-5 pb-28 lg:p-6 flex justify-center">
+    <div
+      className={`
+      relative h-full overflow-hidden
+      px-4 pt-5 pb-28 lg:p-6
+      flex justify-center
+      ${theme.textPrimary}
+    `}
+    >
       <div className="flex flex-1 h-full items-start overflow-hidden min-h-0">
         <div className="flex-1 lg:pr-[360px] flex justify-center h-full overflow-hidden">
           <div className="w-full max-w-5xl mx-auto h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -138,14 +147,27 @@ export default function BudgetAnnual() {
                 subtitle="Planejamento anual de receitas e despesas"
                 icon={
                   <img
-                    src="/logo-ni-branca.svg"
+                    src={
+                      themeName === "light"
+                        ? "/logo-ni-preta.svg"
+                        : "/logo-ni-branca.svg"
+                    }
                     className="w-6 h-6 object-contain"
                   />
                 }
               />
 
-              <div className="bg-white/5 backdrop-blur-xl p-4 lg:p-6 rounded-2xl border border-white/10 shadow-lg">
-                <p className="text-gray-400 text-sm">Saldo Anual</p>
+              <div
+                className={`
+                ${theme.surface}
+                border ${theme.border}
+                backdrop-blur-xl
+                p-4 lg:p-6
+                rounded-2xl
+                shadow-lg
+              `}
+              >
+                <p className={`text-sm ${theme.textSecondary}`}>Saldo Anual</p>
 
                 <SaldoCard receitas={receitas} despesas={despesas} />
                 <NubankBar receitas={receitas} despesas={despesas} />
@@ -166,22 +188,24 @@ export default function BudgetAnnual() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   <div
                     className={`
-                      ${chartTab === "receitas" ? "block" : "hidden"}
-                      lg:block
-                      bg-white/5
-                      backdrop-blur-xl
-                      p-4
-                      pb-8
-                      lg:p-6
-                      lg:pb-15
-                      rounded-2xl
-                      border border-white/10
-                      shadow-lg
-                      h-[210px]
-                      lg:h-68
-                    `}
+                    ${chartTab === "receitas" ? "block" : "hidden"}
+                    lg:block
+                    ${theme.surface}
+                    border ${theme.border}
+                    backdrop-blur-xl
+                    p-4
+                    pb-8
+                    lg:p-6
+                    lg:pb-15
+                    rounded-2xl
+                    shadow-lg
+                    h-[210px]
+                    lg:h-68
+                  `}
                   >
-                    <p className="text-sm text-gray-400 mb-2">Receitas</p>
+                    <p className={`text-sm ${theme.textSecondary} mb-2`}>
+                      Receitas
+                    </p>
 
                     {receitasData.length === 0 ? (
                       <p className="text-gray-500 text-center mt-12">
@@ -219,25 +243,27 @@ export default function BudgetAnnual() {
 
                   <div
                     className={`
-                      ${chartTab === "despesas" ? "block" : "hidden"}
-                      lg:block
-                      bg-white/5
-                      backdrop-blur-xl
-                      p-4
-                      pb-8
-                      lg:p-6
-                      lg:pb-15
-                      rounded-2xl
-                      border border-white/10
-                      shadow-lg
-                      h-[210px]
-                      lg:h-68
-                    `}
+                  ${chartTab === "despesas" ? "block" : "hidden"}
+                  lg:block
+                  ${theme.surface}
+                  border ${theme.border}
+                  backdrop-blur-xl
+                  p-4
+                  pb-8
+                  lg:p-6
+                  lg:pb-15
+                  rounded-2xl
+                  shadow-lg
+                  h-[210px]
+                  lg:h-68
+                `}
                   >
-                    <p className="text-sm text-gray-400 mb-2">Despesas</p>
+                    <p className={`text-sm ${theme.textSecondary} mb-2`}>
+                      Despesas
+                    </p>
 
                     {despesasData.length === 0 ? (
-                      <p className="text-gray-500 text-center mt-12">
+                      <p className={`text-center mt-12 ${theme.textMuted}`}>
                         Sem dados
                       </p>
                     ) : (
@@ -277,13 +303,22 @@ export default function BudgetAnnual() {
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <div className="shrink-0">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl lg:text-2xl font-semibold">
+                  <h2
+                    className={`text-xl lg:text-2xl font-semibold ${theme.textPrimary}`}
+                  >
                     Lançamentos
                   </h2>
 
                   <button
                     onClick={() => setShowFilters((prev) => !prev)}
-                    className="px-3 py-1 rounded-lg bg-white/10 text-sm text-gray-300 hover:bg-white/20 cursor-pointer"
+                    className={`
+                    px-3 py-1 rounded-lg text-sm cursor-pointer border transition
+                    ${
+                      themeName === "light"
+                        ? "bg-white/60 border-slate-200/70 text-slate-600 hover:bg-white"
+                        : "bg-white/10 border-white/[0.06] text-gray-300 hover:bg-white/20"
+                    }
+                  `}
                   >
                     Filtros
                   </button>
@@ -291,7 +326,16 @@ export default function BudgetAnnual() {
 
                 {activeMonthFilter && (
                   <div className="flex gap-2 mt-3">
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sm">
+                    <div
+                      className={`
+                      flex items-center gap-2 px-3 py-1 rounded-full text-sm border
+                      ${
+                        themeName === "light"
+                          ? "bg-white/60 border-slate-200/70 text-slate-600"
+                          : "bg-white/10 border-white/[0.06] text-gray-300"
+                      }
+                    `}
+                    >
                       <span>{activeMonthFilter}</span>
 
                       <button
@@ -299,7 +343,10 @@ export default function BudgetAnnual() {
                           setMonthFilter("todos");
                           setShowFilters(false);
                         }}
-                        className="text-gray-400 hover:text-white cursor-pointer"
+                        className={`
+                        cursor-pointer
+                        ${themeName === "light" ? "text-slate-400 hover:text-slate-700" : "text-gray-400 hover:text-white"}
+                      `}
                       >
                         ✕
                       </button>
@@ -314,10 +361,12 @@ export default function BudgetAnnual() {
                         setMonthFilter("todos");
                         setShowFilters(false);
                       }}
-                      className={`cursor-pointer px-3 py-1 rounded-full text-xs ${
+                      className={`cursor-pointer px-3 py-1 rounded-full text-xs border transition ${
                         monthFilter === "todos"
-                          ? "bg-emerald-400 text-black"
-                          : "bg-white/10 text-gray-300"
+                          ? "bg-emerald-400 text-black border-emerald-400"
+                          : themeName === "light"
+                            ? "bg-white/60 text-slate-600 border-slate-200/70 hover:bg-white"
+                            : "bg-white/10 text-gray-300 border-white/[0.06] hover:bg-white/20"
                       }`}
                     >
                       Todos
@@ -330,10 +379,12 @@ export default function BudgetAnnual() {
                           setMonthFilter(m);
                           setShowFilters(false);
                         }}
-                        className={`cursor-pointer px-3 py-1 rounded-full text-xs ${
+                        className={`cursor-pointer px-3 py-1 rounded-full text-xs border transition ${
                           monthFilter === m
-                            ? "bg-emerald-400 text-black"
-                            : "bg-white/10 text-gray-300"
+                            ? "bg-emerald-400 text-black border-emerald-400"
+                            : themeName === "light"
+                              ? "bg-white/60 text-slate-600 border-slate-200/70 hover:bg-white"
+                              : "bg-white/10 text-gray-300 border-white/[0.06] hover:bg-white/20"
                         }`}
                       >
                         {m.toUpperCase()}
@@ -350,33 +401,59 @@ export default function BudgetAnnual() {
                   filteredItems.map((item) => (
                     <div
                       key={item.id}
-                      className="
-                        bg-white/5
-                        backdrop-blur-xl
-                        p-4 lg:p-5
-                        rounded-xl
-                        border border-white/10
-                        flex
-                        justify-between
-                        items-center
-                        gap-4
-                        hover:bg-white/10
-                        transition
-                      "
+                      className={`
+                      flex items-center justify-between gap-4
+                      p-4 lg:p-5
+                      rounded-[24px]
+                      border
+                      backdrop-blur-xl
+                      transition-all
+                      ${
+                        themeName === "light"
+                          ? `
+                            bg-white/70
+                            border-slate-200/70
+                            hover:bg-white
+                          `
+                          : `
+                            bg-white/[0.04]
+                            border-white/[0.08]
+                            hover:bg-white/[0.07]
+                          `
+                      }
+                    `}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <img
-                          src={getPaymentVisual({ item, cards, accounts })}
-                          className="w-8 h-8 object-contain shrink-0"
-                        />
+                        <div
+                          className={`
+                          w-11 h-11 rounded-2xl
+                          flex items-center justify-center
+                          shrink-0 border
+                          ${
+                            themeName === "light"
+                              ? "bg-white/80 border-slate-200/80 shadow-sm"
+                              : "bg-white/[0.04] border-white/[0.08]"
+                          }
+                        `}
+                        >
+                          <img
+                            src={getPaymentVisual({ item, cards, accounts })}
+                            className={`
+                            w-6 h-6 object-contain
+                            ${themeName === "light" ? "invert opacity-70" : ""}
+                          `}
+                          />
+                        </div>
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium truncate">
+                            <p
+                              className={`font-medium truncate ${theme.textPrimary}`}
+                            >
                               {item.descricao}
                             </p>
 
-                            <p className="text-sm text-gray-400">
+                            <p className={`text-sm ${theme.textSecondary}`}>
                               {categories.find((c) => c.id === item.categoriaId)
                                 ?.nome || "Sem categoria"}
                             </p>
@@ -386,7 +463,16 @@ export default function BudgetAnnual() {
                             {item.meses?.map((m) => (
                               <span
                                 key={m}
-                                className="text-[11px] px-2.5 py-1 rounded-full bg-white/10 text-gray-300"
+                                className={`
+                                text-[10px]
+                                px-2 py-0.5
+                                rounded-full
+                                ${
+                                  themeName === "light"
+                                    ? "bg-slate-100 text-slate-500"
+                                    : "bg-white/[0.06] text-gray-300"
+                                }
+                              `}
                               >
                                 {m.toUpperCase()}
                               </span>
@@ -395,7 +481,7 @@ export default function BudgetAnnual() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
                         <p
                           className={`font-medium text-sm lg:text-base ${
                             item.tipo === "receita"
@@ -429,14 +515,32 @@ export default function BudgetAnnual() {
                               setShowMobileForm(true);
                             }
                           }}
-                          className="cursor-pointer"
+                          className={`
+                          w-9 h-9 rounded-xl
+                          flex items-center justify-center
+                          transition-all border
+                          ${
+                            themeName === "light"
+                              ? "bg-white border-slate-200/70 hover:bg-slate-50"
+                              : "bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.08]"
+                          }
+                        `}
                         >
                           <EditIcon className="w-5 h-5" />
                         </button>
 
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="cursor-pointer"
+                          className={`
+                          w-9 h-9 rounded-xl
+                          flex items-center justify-center
+                          transition-all border
+                          ${
+                            themeName === "light"
+                              ? "bg-red-50 border-red-100 hover:bg-red-100"
+                              : "bg-red-400/10 border-red-400/10 hover:bg-red-400/20"
+                          }
+                        `}
                         >
                           <DeleteIcon className="w-5 h-5" />
                         </button>

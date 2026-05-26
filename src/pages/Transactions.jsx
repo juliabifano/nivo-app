@@ -5,12 +5,14 @@ import TransactionList from "../components/TransactionList";
 import RightSidebarTransactions from "../components/RightSidebarTransactions";
 import BottomSheet from "../components/ui/BottomSheet";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
+import SectionHeader from "../components/ui/SectionHeader";
 import { mapTransactionsWithCategory } from "../core/selectors/categorySelectors";
 import { useCategories } from "../contexts/CategoryContext";
 import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import { useCards } from "../contexts/CardContext";
 import { useAccounts } from "../contexts/AccountContext";
 import DatePicker from "../components/DatePicker";
+import { useTheme } from "../theme/useTheme";
 import {
   filterTransactions,
   parseLocalDate,
@@ -23,6 +25,7 @@ export default function Transactions() {
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
   const [showMobileForm, setShowMobileForm] = useState(false);
+  const { theme, themeName } = useTheme();
 
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -207,44 +210,41 @@ export default function Transactions() {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row h-full overflow-hidden text-white">
+    <div
+      className={`relative flex flex-col lg:flex-row h-full overflow-hidden ${theme.textPrimary}`}
+    >
       {/* CENTRO */}
       <div
         className="
-    flex-1
-    min-h-0
-    overflow-y-auto
-    px-4
-    pt-5
-    pb-32
-    lg:p-6
-    lg:pr-[360px]
-    flex
-    justify-center
-    no-scrollbar
-    mb-5
-  "
+        flex-1
+        min-h-0
+        h-full
+        overflow-hidden
+        px-4
+        pt-5
+        pb-0
+        lg:p-6
+        lg:pr-[360px]
+        flex
+        justify-center
+        no-scrollbar
+      "
       >
-        <div className="w-full max-w-3xl flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="md:hidden w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0">
-                <img
-                  src="/logo-ni-branca.svg"
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-
-              <div>
-                <h1 className="text-2xl font-semibold">Transações</h1>
-
-                <p className="text-sm text-gray-400 mt-1">
-                  Seus lançamentos do mês
-                </p>
-              </div>
-            </div>
-          </div>
-
+        <div className="w-full max-w-3xl h-full min-h-0 flex flex-col gap-6 overflow-hidden">
+          <SectionHeader
+            title="Transações"
+            subtitle="Seus lançamentos do mês"
+            icon={
+              <img
+                src={
+                  themeName === "light"
+                    ? "/logo-ni-preta.svg"
+                    : "/logo-ni-branca.svg"
+                }
+                className="w-6 h-6 object-contain"
+              />
+            }
+          />
           <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1 shrink-0">
             {[
               { label: "Todas", value: "todos" },
@@ -255,10 +255,12 @@ export default function Transactions() {
               <button
                 key={p.value}
                 onClick={() => setFilters({ ...filters, periodo: p.value })}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-sm cursor-pointer ${
+                className={`shrink-0 px-3 py-1.5 rounded-full text-sm cursor-pointer transition-all ${
                   filters.periodo === p.value
                     ? "bg-emerald-400 text-black"
-                    : "bg-white/10 text-gray-300 hover:bg-white/20"
+                    : themeName === "light"
+                      ? "bg-white/50 text-slate-600 border border-slate-200/70 hover:bg-white/80"
+                      : "bg-white/10 text-gray-300 hover:bg-white/20"
                 }`}
               >
                 {p.label}
@@ -269,14 +271,14 @@ export default function Transactions() {
           <button
             onClick={() => setShowFilters((prev) => !prev)}
             className="
-    flex items-center gap-2
-    text-sm
-    text-gray-400
-    hover:text-white
-    transition-colors
-    w-fit
-    cursor-pointer
-  "
+            flex items-center gap-2
+            text-sm
+            text-gray-400
+            hover:text-white
+            transition-colors
+            w-fit
+            cursor-pointer
+          "
           >
             <span>Filtros avançados</span>
 
@@ -347,21 +349,21 @@ export default function Transactions() {
 
           {showFilters && (
             <div
-              className="
-    relative
-    bg-white/[0.04]
-    border border-white/[0.08]
-    rounded-[28px]
-    p-4
-    flex flex-col gap-3
-    backdrop-blur-xl
-  "
+              className={`
+              relative
+              ${theme.surface}
+              border ${theme.border}
+              rounded-[28px]
+              p-4
+              flex flex-col gap-3
+              backdrop-blur-xl
+              overflow-hidden
+            `}
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(62,242,194,0.08),transparent_55%)] pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-400/10 blur-3xl rounded-full pointer-events-none" />
 
-              {/* Tipo */}
-              <div className="flex gap-2">
+              <div className="relative z-10 flex gap-2">
                 {[
                   { label: "Todos", value: "todos" },
                   { label: "Receitas", value: "receita" },
@@ -370,10 +372,12 @@ export default function Transactions() {
                   <button
                     key={t.value}
                     onClick={() => setFilters({ ...filters, tipo: t.value })}
-                    className={`px-3 py-1 rounded-full text-sm cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-all ${
                       filters.tipo === t.value
                         ? "bg-emerald-400 text-black"
-                        : "bg-white/10 text-gray-300 hover:bg-white/20"
+                        : themeName === "light"
+                          ? "bg-white/50 text-slate-600 border border-slate-200/70 hover:bg-white/80"
+                          : "bg-white/10 text-gray-300 hover:bg-white/20"
                     }`}
                   >
                     {t.label}
@@ -381,10 +385,9 @@ export default function Transactions() {
                 ))}
               </div>
 
-              {/* Data */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="relative z-10 grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-gray-400">De</span>
+                  <span className={`text-xs ${theme.textSecondary}`}>De</span>
 
                   <DatePicker
                     value={filters.dataInicio}
@@ -400,7 +403,7 @@ export default function Transactions() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-gray-400">Até</span>
+                  <span className={`text-xs ${theme.textSecondary}`}>Até</span>
 
                   <DatePicker
                     value={filters.dataFim}
@@ -416,14 +419,18 @@ export default function Transactions() {
                 </div>
               </div>
 
-              {/* Categoria */}
               <select
                 value={filters.categoriaId}
                 onChange={(e) => {
                   setFilters({ ...filters, categoriaId: e.target.value });
                   setShowFilters(false);
                 }}
-                className="bg-[#1f2937] p-2 rounded-lg cursor-pointer"
+                className={`
+                relative z-10 p-2 rounded-xl cursor-pointer outline-none
+                ${theme.surface}
+                border ${theme.border}
+                ${theme.textPrimary}
+              `}
               >
                 <option value="">Todas categorias</option>
                 {categories.map((c) => (
@@ -433,14 +440,18 @@ export default function Transactions() {
                 ))}
               </select>
 
-              {/* Forma */}
               <select
                 value={filters.formaPagamento}
                 onChange={(e) => {
                   setFilters({ ...filters, formaPagamento: e.target.value });
                   setShowFilters(false);
                 }}
-                className="bg-[#1f2937] p-2 rounded-lg cursor-pointer"
+                className={`
+                relative z-10 p-2 rounded-xl cursor-pointer outline-none
+                ${theme.surface}
+                border ${theme.border}
+                ${theme.textPrimary}
+              `}
               >
                 <option value="">Todas formas</option>
                 <option value="pix">Pix</option>
@@ -450,14 +461,18 @@ export default function Transactions() {
                 <option value="vale">Vale</option>
               </select>
 
-              {/* Cartão */}
               <select
                 value={filters.cartaoId}
                 onChange={(e) => {
                   setFilters({ ...filters, cartaoId: e.target.value });
                   setShowFilters(false);
                 }}
-                className="bg-[#1f2937] p-2 rounded-lg cursor-pointer"
+                className={`
+                relative z-10 p-2 rounded-xl cursor-pointer outline-none
+                ${theme.surface}
+                border ${theme.border}
+                ${theme.textPrimary}
+              `}
               >
                 <option value="">Todos cartões</option>
                 {cards.map((c) => (
@@ -467,14 +482,18 @@ export default function Transactions() {
                 ))}
               </select>
 
-              {/* Conta */}
               <select
                 value={filters.accountId}
                 onChange={(e) => {
                   setFilters({ ...filters, accountId: e.target.value });
                   setShowFilters(false);
                 }}
-                className="bg-[#1f2937] p-2 rounded-lg cursor-pointer"
+                className={`
+                relative z-10 p-2 rounded-xl cursor-pointer outline-none
+                ${theme.surface}
+                border ${theme.border}
+                ${theme.textPrimary}
+              `}
               >
                 <option value="">Todas contas</option>
                 {accounts.map((a) => (
@@ -483,9 +502,7 @@ export default function Transactions() {
                   </option>
                 ))}
               </select>
-              <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-400/10 blur-3xl rounded-full pointer-events-none" />
 
-              {/* Reset */}
               <button
                 onClick={() =>
                   setFilters({
@@ -499,7 +516,13 @@ export default function Transactions() {
                     dataFim: "",
                   })
                 }
-                className="bg-red-400 text-black px-3 py-1 rounded-lg cursor-pointer"
+                className={`
+                relative z-10 px-3 py-2 rounded-xl cursor-pointer
+                text-sm font-medium transition-all
+                ${theme.dangerSoft}
+                ${theme.danger}
+                border border-red-400/20
+              `}
               >
                 Limpar filtros
               </button>
@@ -507,38 +530,41 @@ export default function Transactions() {
           )}
 
           {/* LISTA */}
-          <AnimatePresence mode="popLayout">
-            <div className="flex flex-col gap-6">
-              {Object.entries(grouped)
-                .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-                .map(([date, items]) => (
-                  <motion.div
-                    key={date}
-                    layout
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -16 }}
-                    transition={{ duration: 0.25 }}
-                    className="flex flex-col gap-3"
-                  >
-                    <p className="text-xs text-gray-400 font-semibold uppercase">
-                      {getDateLabel(date)}
-                    </p>
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar pb-32 lg:pb-5">
+            <AnimatePresence mode="popLayout">
+              <div className="flex flex-col gap-6">
+                {Object.entries(grouped)
+                  .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+                  .map(([date, items]) => (
+                    <motion.div
+                      key={date}
+                      layout
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -16 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex flex-col gap-3"
+                    >
+                      <p
+                        className={`text-xs font-semibold uppercase ${theme.textMuted}`}
+                      >
+                        {getDateLabel(date)}
+                      </p>
 
-                    <TransactionList
-                      transactions={items}
-                      onDelete={remove}
-                      onEdit={
-                        window.innerWidth < 1024
-                          ? handleEditMobile
-                          : setEditingTransaction
-                      }
-                    />
-                  </motion.div>
-                ))}
-            </div>
-          </AnimatePresence>
-          <div className="h-36 lg:hidden shrink-0" />
+                      <TransactionList
+                        transactions={items}
+                        onDelete={remove}
+                        onEdit={
+                          window.innerWidth < 1024
+                            ? handleEditMobile
+                            : setEditingTransaction
+                        }
+                      />
+                    </motion.div>
+                  ))}
+              </div>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 

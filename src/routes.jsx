@@ -10,6 +10,8 @@ import Cards from "./pages/Cards";
 import Accounts from "./pages/Accounts";
 import Schedule from "./pages/Schedule";
 import More from "./pages/More";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +29,8 @@ export default function AppRoutes() {
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/more" element={<More />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
   );

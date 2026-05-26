@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTheme } from "../../theme/useTheme";
 
 export default function GlassTabs({
   tabs = [],
@@ -6,20 +7,18 @@ export default function GlassTabs({
   onChange,
   className = "",
 }) {
+  const { theme, themeName } = useTheme();
+
   return (
     <div
       className={`
-        relative
-        flex
-        items-center
-        gap-2
-        p-1
-        rounded-2xl
-        bg-white/[0.04]
-        border border-white/[0.08]
-        backdrop-blur-xl
-        overflow-x-auto
-        no-scrollbar
+        relative flex items-center gap-2 p-1 rounded-2xl
+        border backdrop-blur-xl overflow-x-auto no-scrollbar
+        ${
+          themeName === "light"
+            ? "bg-white/60 border-slate-200/70 shadow-sm"
+            : "bg-white/[0.04] border-white/[0.08]"
+        }
         ${className}
       `}
     >
@@ -31,30 +30,21 @@ export default function GlassTabs({
             key={tab.value}
             onClick={() => onChange(tab.value)}
             className="
-              relative
-              shrink-0
-              flex-1
-              px-4
-              h-10
-              rounded-xl
-              text-sm
-              whitespace-nowrap
-              transition-all
-              cursor-pointer
+              relative shrink-0 flex-1 px-4 h-10 rounded-xl
+              text-sm whitespace-nowrap transition-all cursor-pointer
             "
           >
             {active && (
               <motion.div
                 layoutId="glass-tab"
-                className="
-                  absolute
-                  inset-0
-                  rounded-xl
-                  bg-white/[0.10]
-                  border border-white/[0.08]
-                  backdrop-blur-xl
-                  shadow-[0_0_20px_rgba(255,255,255,0.06)]
-                "
+                className={`
+                  absolute inset-0 rounded-xl border backdrop-blur-xl
+                  ${
+                    themeName === "light"
+                      ? "bg-white/95 border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+                      : "bg-white/[0.10] border-white/[0.08] shadow-[0_0_20px_rgba(255,255,255,0.06)]"
+                  }
+                `}
                 transition={{
                   type: "spring",
                   stiffness: 380,
@@ -65,13 +55,13 @@ export default function GlassTabs({
 
             <span
               className={`
-                relative
-                z-10
-                transition-colors
+                relative z-10 transition-colors
                 ${
                   active
-                    ? "text-white font-medium"
-                    : "text-gray-300"
+                    ? `${theme.textPrimary} font-medium`
+                    : themeName === "light"
+                      ? "text-slate-500"
+                      : "text-gray-300"
                 }
               `}
             >

@@ -1,4 +1,5 @@
 import Card from "../ui/Card";
+import { useTheme } from "../../theme/useTheme";
 
 export default function InsightsCard({
   futureStatus,
@@ -11,6 +12,8 @@ export default function InsightsCard({
   formatCurrency,
   smartInsights = [],
 }) {
+  const { theme, themeName } = useTheme();
+
   const statusTone =
     futureStatus.label === "Risco"
       ? "danger"
@@ -22,23 +25,23 @@ export default function InsightsCard({
     safe: {
       title: "Previsão saudável",
       icon: "✓",
-      card: "bg-emerald-400/[0.055] border-emerald-400/[0.12]",
-      iconStyle: "bg-emerald-400/15 text-emerald-300 border-emerald-400/20",
-      text: "text-emerald-300",
+      card: `${theme.successSoft} border-emerald-400/20`,
+      iconStyle: `${theme.successSoft} ${theme.success} border-emerald-400/20`,
+      text: theme.success,
     },
     warning: {
       title: "Acompanhe de perto",
       icon: "!",
-      card: "bg-yellow-400/[0.055] border-yellow-400/[0.12]",
-      iconStyle: "bg-yellow-400/15 text-yellow-300 border-yellow-400/20",
-      text: "text-yellow-300",
+      card: `${theme.warningSoft} border-yellow-400/20`,
+      iconStyle: `${theme.warningSoft} ${theme.warning} border-yellow-400/20`,
+      text: theme.warning,
     },
     danger: {
       title: "Risco no mês",
       icon: "!",
-      card: "bg-red-400/[0.055] border-red-400/[0.12]",
-      iconStyle: "bg-red-400/15 text-red-300 border-red-400/20",
-      text: "text-red-300",
+      card: `${theme.dangerSoft} border-red-400/20`,
+      iconStyle: `${theme.dangerSoft} ${theme.danger} border-red-400/20`,
+      text: theme.danger,
     },
   }[statusTone];
 
@@ -50,8 +53,11 @@ export default function InsightsCard({
     <Card hover="subtle" className="p-4 h-full min-h-0">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[15px] font-medium text-gray-300">Insights</p>
-          <p className="text-[11px] text-gray-500/80 mt-1">
+          <p className={`text-[15px] font-medium ${theme.textSecondary}`}>
+            Insights
+          </p>
+
+          <p className={`text-[11px] ${theme.textMuted} mt-1`}>
             Análises automáticas do mês
           </p>
         </div>
@@ -63,7 +69,7 @@ export default function InsightsCard({
         </span>
       </div>
 
-     <div className="space-y-3 xl:h-[calc(100%-52px)] overflow-y-auto pr-1 no-scrollbar">
+      <div className="space-y-3 xl:h-[calc(100%-52px)] overflow-y-auto pr-1 no-scrollbar">
         <div className={`border rounded-2xl p-3 ${statusConfig.card}`}>
           <div className="flex items-start gap-3">
             <span
@@ -77,7 +83,9 @@ export default function InsightsCard({
                 {statusConfig.title}
               </p>
 
-              <p className="text-sm text-white mt-1 leading-relaxed">
+              <p
+                className={`text-sm ${theme.textPrimary} mt-1 leading-relaxed`}
+              >
                 {futureInsight}
               </p>
             </div>
@@ -85,27 +93,35 @@ export default function InsightsCard({
         </div>
 
         {topCategories.length > 0 && (
-          <div className="bg-white/[0.04] border border-white/[0.04] rounded-2xl p-3">
+          <div
+            className={`${theme.surface} border ${theme.border} rounded-2xl p-3`}
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs text-gray-500">
+                <p className={`text-xs ${theme.textMuted}`}>
                   Categoria mais impactante
                 </p>
 
-                <p className="text-sm text-white mt-2">
+                <p className={`text-sm ${theme.textPrimary} mt-2`}>
                   Seu maior gasto foi{" "}
-                  <span className="text-red-400 font-semibold">
+                  <span className={`${theme.danger} font-semibold`}>
                     {topCategories[0].name || "Sem nome"}
                   </span>
                 </p>
               </div>
 
-              <span className="text-[10px] px-2 py-1 rounded-full bg-red-400/10 text-red-300 border border-red-400/20 shrink-0">
+              <span
+                className={`text-[10px] px-2 py-1 rounded-full ${theme.dangerSoft} ${theme.danger} border border-red-400/20 shrink-0`}
+              >
                 {topCategoryPercent}%
               </span>
             </div>
 
-            <div className="w-full h-1 bg-white/[0.06] rounded-full mt-3 overflow-hidden">
+            <div
+              className={`w-full h-1 rounded-full mt-3 overflow-hidden ${
+                themeName === "light" ? "bg-slate-200/70" : "bg-white/[0.06]"
+              }`}
+            >
               <div
                 className="h-1 rounded-full bg-gradient-to-r from-red-400 to-rose-500"
                 style={{ width: `${topCategoryPercent}%` }}
@@ -117,17 +133,19 @@ export default function InsightsCard({
         {smartInsights.length > 0 &&
           smartInsights.map((insight) => {
             const tone = {
-              success:
-                "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
-              warning: "text-yellow-300 bg-yellow-400/10 border-yellow-400/20",
-              danger: "text-red-300 bg-red-400/10 border-red-400/20",
-              info: "text-sky-300 bg-sky-400/10 border-sky-400/20",
+              success: `${theme.success} ${theme.successSoft} border-emerald-400/20`,
+              warning: `${theme.warning} ${theme.warningSoft} border-yellow-400/20`,
+              danger: `${theme.danger} ${theme.dangerSoft} border-red-400/20`,
+              info:
+                themeName === "light"
+                  ? "text-sky-600 bg-sky-500/10 border-sky-400/20"
+                  : "text-sky-300 bg-sky-400/10 border-sky-400/20",
             }[insight.type || "info"];
 
             return (
               <div
                 key={insight.title}
-                className="bg-white/[0.04] border border-white/[0.04] rounded-2xl p-3"
+                className={`${theme.surface} border ${theme.border} rounded-2xl p-3`}
               >
                 <div className="flex items-start gap-3">
                   <span
@@ -137,11 +155,13 @@ export default function InsightsCard({
                   </span>
 
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className={`text-sm font-semibold ${theme.textPrimary}`}>
                       {insight.title}
                     </p>
 
-                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                    <p
+                      className={`text-xs ${theme.textSecondary} mt-1 leading-relaxed`}
+                    >
                       {insight.message}
                     </p>
                   </div>
@@ -150,16 +170,20 @@ export default function InsightsCard({
             );
           })}
 
-        <div className="bg-white/[0.04] border border-white/[0.04] rounded-2xl p-3">
+        <div
+          className={`${theme.surface} border ${theme.border} rounded-2xl p-3`}
+        >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-gray-500">Menor saldo previsto</p>
+              <p className={`text-xs ${theme.textMuted}`}>
+                Menor saldo previsto
+              </p>
 
-              <p className="text-lg font-semibold text-white mt-2">
+              <p className={`text-lg font-semibold ${theme.textPrimary} mt-2`}>
                 {formatCurrency(lowestFutureBalance)}
               </p>
 
-              <p className="text-xs text-gray-500 mt-1">
+              <p className={`text-xs ${theme.textMuted} mt-1`}>
                 previsto para o dia {criticalDay || "--"}
               </p>
             </div>
@@ -167,10 +191,14 @@ export default function InsightsCard({
             <span
               className={`w-7 h-7 rounded-xl flex items-center justify-center border ${
                 trend === "up"
-                  ? "text-emerald-300 bg-emerald-400/10 border-emerald-400/20"
+                  ? `${theme.success} ${theme.successSoft} border-emerald-400/20`
                   : trend === "down"
-                    ? "text-red-300 bg-red-400/10 border-red-400/20"
-                    : "text-gray-300 bg-white/10 border-white/10"
+                    ? `${theme.danger} ${theme.dangerSoft} border-red-400/20`
+                    : `${theme.textMuted} ${
+                        themeName === "light"
+                          ? "bg-slate-200/70 border-slate-200"
+                          : "bg-white/10 border-white/10"
+                      }`
               }`}
             >
               {trend === "up" ? "↗" : trend === "down" ? "↘" : "→"}

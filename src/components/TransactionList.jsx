@@ -11,6 +11,7 @@ import { useCards } from "../contexts/CardContext";
 import { parseLocalDate } from "../core/selectors/transactionSelectors";
 import { getPaymentVisual } from "../utils/getPaymentVisual";
 import { useAccounts } from "../contexts/AccountContext";
+import { useTheme } from "../theme/useTheme";
 
 export default function TransactionList({
   transactions = [],
@@ -20,6 +21,7 @@ export default function TransactionList({
   const { categories } = useCategories();
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
+  const { theme, themeName } = useTheme();
 
   function getCardName(id) {
     return cards.find((c) => String(c.id) === String(id))?.nome || "";
@@ -95,19 +97,43 @@ export default function TransactionList({
                 return (
                   <div
                     key={t.id}
-                    className="bg-white/5 border border-white/10 p-4 rounded-xl flex justify-between items-center hover:bg-white/10 transition"
+                    className={`
+                    p-4 rounded-2xl flex justify-between items-center transition border
+                    ${
+                      themeName === "light"
+                        ? "bg-white/45 border-slate-200/70 hover:bg-white/70 hover:border-slate-300/80"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
+                    }
+                  `}
                   >
                     {/* ESQUERDA */}
                     <div className="flex items-center gap-3">
-                      <img
-                        src={getPaymentVisual({ item: t, cards, accounts })}
-                        className="w-8 h-8 object-contain"
-                      />
+                      <div
+                        className={`
+                        w-10 h-10 rounded-2xl
+                        flex items-center justify-center shrink-0 border
+                        ${
+                          themeName === "light"
+                            ? "bg-white/80 border-slate-200/80 shadow-sm"
+                            : "bg-white/5 border-white/10"
+                        }
+                      `}
+                      >
+                        <img
+                          src={getPaymentVisual({ item: t, cards, accounts })}
+                          className={`
+                          w-5 h-5 object-contain
+                          ${themeName === "light" ? "invert opacity-70" : ""}
+                        `}
+                        />
+                      </div>
 
                       <div>
-                        <p className="font-medium">{t.descricao}</p>
+                        <p className={`font-medium ${theme.textPrimary}`}>
+                          {t.descricao}
+                        </p>
 
-                        <p className="text-xs text-gray-400">
+                        <p className={`text-xs ${theme.textSecondary}`}>
                           {t.categoriaNome}
                           {t.cartaoId && getCardName(t.cartaoId)
                             ? ` • ${getCardName(t.cartaoId)}`
@@ -115,7 +141,7 @@ export default function TransactionList({
                           {parcelaLabel}
                         </p>
 
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={`text-xs mt-1 ${theme.textMuted}`}>
                           {parseLocalDate(t.data).toLocaleDateString("pt-BR", {
                             day: "2-digit",
                             month: "short",
@@ -130,8 +156,8 @@ export default function TransactionList({
                       <p
                         className={
                           t.tipo === "receita"
-                            ? "text-emerald-400 font-medium whitespace-nowrap"
-                            : "text-red-400 font-medium whitespace-nowrap"
+                            ? `${theme.success} font-medium whitespace-nowrap`
+                            : `${theme.danger} font-medium whitespace-nowrap`
                         }
                       >
                         {Number(t.valor).toLocaleString("pt-BR", {
@@ -142,16 +168,37 @@ export default function TransactionList({
 
                       <button
                         onClick={() => onEdit(t)}
-                        className="p-1 rounded hover:bg-white/10"
+                        className={`
+                        p-1 rounded-lg transition cursor-pointer
+                        ${themeName === "light" ? "hover:bg-slate-200/70" : "hover:bg-white/10"}
+                      `}
                       >
-                        <EditIcon className="w-4 h-4 text-blue-400" />
+                        <EditIcon
+                          className={`w-4 h-4 ${
+                            themeName === "light"
+                              ? "text-sky-600"
+                              : "text-blue-400"
+                          }`}
+                        />
                       </button>
 
                       <button
                         onClick={() => handleDeleteClick(t)}
-                        className="p-1 rounded hover:bg-white/10 group"
+                        className={`
+                        p-1 rounded-lg group transition cursor-pointer
+                        ${themeName === "light" ? "hover:bg-slate-200/70" : "hover:bg-white/10"}
+                      `}
                       >
-                        <DeleteIcon className="w-4 h-4 text-gray-400 group-hover:text-red-400" />
+                        <DeleteIcon
+                          className={`
+                          w-4 h-4 transition
+                          ${
+                            themeName === "light"
+                              ? "text-slate-400 group-hover:text-red-500"
+                              : "text-gray-400 group-hover:text-red-400"
+                          }
+                        `}
+                        />
                       </button>
                     </div>
                   </div>

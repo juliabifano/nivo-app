@@ -10,6 +10,7 @@ import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useCards } from "../contexts/CardContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
+import { useTheme } from "../theme/useTheme";
 import {
   generateInvoice,
   groupByDate,
@@ -20,6 +21,7 @@ export default function Cards() {
   const { cards, remove } = useCards();
   const { transactions = [] } = useTransactions();
   const { items: budgetItems = [] } = useBudgetAnnual();
+  const { theme, themeName } = useTheme();
 
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
@@ -161,7 +163,9 @@ export default function Cards() {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row h-full overflow-hidden">
+    <div
+      className={`relative flex flex-col lg:flex-row h-full overflow-hidden ${theme.textPrimary}`}
+    >
       {/* GRID */}
       <div
         className="
@@ -180,7 +184,14 @@ export default function Cards() {
           title="Cartões"
           subtitle="Seus cartões e limites"
           icon={
-            <img src="/logo-ni-branca.svg" className="w-6 h-6 object-contain" />
+            <img
+              src={
+                themeName === "light"
+                  ? "/logo-ni-preta.svg"
+                  : "/logo-ni-branca.svg"
+              }
+              className="w-6 h-6 object-contain"
+            />
           }
         />
 
@@ -243,7 +254,13 @@ export default function Cards() {
                   positionOffset={index - activeCardIndex}
                   transactions={allTransactions}
                   setSelected={setSelected}
-                  setEditandoCartao={setEditandoCartao}
+                  setEditandoCartao={(card) => {
+                    setEditandoCartao(card);
+
+                    if (window.innerWidth < 1024) {
+                      setShowMobileForm(true);
+                    }
+                  }}
                   setConfirmDelete={setConfirmDelete}
                   formatCurrency={formatCurrency}
                   formatCardNumber={formatCardNumber}
@@ -254,34 +271,40 @@ export default function Cards() {
               <button
                 onClick={goPrevCard}
                 disabled={activeCardIndex === 0}
-                className="
-  w-8 h-8
-  rounded-xl
-  bg-black/30
-  border border-white/10
-  backdrop-blur-xl
-  text-white/80
-  text-sm
-  disabled:opacity-20
-  active:scale-95
-  transition-all
-"
+                className={`
+                w-8 h-8
+                rounded-xl
+                backdrop-blur-xl
+                text-sm
+                disabled:opacity-20
+                active:scale-95
+                transition-all
+                border
+                ${
+                  themeName === "light"
+                    ? "bg-white/90 border-slate-300/80 text-slate-600 shadow-sm"
+                    : "bg-black/30 border-white/10 text-white/80"
+                }
+              `}
               >
                 ↑
               </button>
 
               <div
-                className="
-  px-2.5 h-8
-  rounded-xl
-  bg-black/30
-  border border-white/10
-  backdrop-blur-xl
-  flex items-center justify-center
-  text-[11px]
-  text-gray-300
-  min-w-[52px]
-"
+                className={`
+                px-2.5 h-8
+                rounded-xl
+                backdrop-blur-xl
+                flex items-center justify-center
+                text-[11px]
+                min-w-[52px]
+                border
+                ${
+                  themeName === "light"
+                    ? "bg-white/90 border-slate-300/80 text-slate-600 shadow-sm"
+                    : "bg-black/30 border-white/10 text-gray-300"
+                }
+              `}
               >
                 {activeCardIndex + 1} / {cards.length}
               </div>
@@ -289,18 +312,21 @@ export default function Cards() {
               <button
                 onClick={goNextCard}
                 disabled={activeCardIndex === cards.length - 1}
-                className="
-  w-8 h-8
-  rounded-xl
-  bg-black/30
-  border border-white/10
-  backdrop-blur-xl
-  text-white/80
-  text-sm
-  disabled:opacity-20
-  active:scale-95
-  transition-all
-"
+                className={`
+                w-8 h-8
+                rounded-xl
+                backdrop-blur-xl
+                text-sm
+                disabled:opacity-20
+                active:scale-95
+                transition-all
+                border
+                ${
+                  themeName === "light"
+                    ? "bg-white/90 border-slate-300/80 text-slate-600 shadow-sm"
+                    : "bg-black/30 border-white/10 text-white/80"
+                }
+              `}
               >
                 ↓
               </button>
@@ -314,7 +340,7 @@ export default function Cards() {
         <RightSidebarCards
           editandoCartao={editandoCartao}
           setEditandoCartao={setEditandoCartao}
-          />
+        />
       </div>
 
       {/* MODAL COMPLETO */}
@@ -322,6 +348,7 @@ export default function Cards() {
         selected={selected}
         setSelected={setSelected}
         transactions={allTransactions}
+        budgetItems={budgetItems}
         formatCurrency={formatCurrency}
         getTransacoes={getTransacoes}
         getGasto={getGasto}
@@ -347,19 +374,21 @@ export default function Cards() {
       />
 
       {/* FAB MOBILE */}
-      <FloatingActionButton
-        open={showMobileForm}
-        onClick={() => {
-          if (showMobileForm) {
-            setShowMobileForm(false);
-            setEditandoCartao(null);
-            return;
-          }
+      {!selected && (
+        <FloatingActionButton
+          open={showMobileForm}
+          onClick={() => {
+            if (showMobileForm) {
+              setShowMobileForm(false);
+              setEditandoCartao(null);
+              return;
+            }
 
-          setEditandoCartao(null);
-          setShowMobileForm(true);
-        }}
-      />
+            setEditandoCartao(null);
+            setShowMobileForm(true);
+          }}
+        />
+      )}
 
       <BottomSheet
         open={showMobileForm}

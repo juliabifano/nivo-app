@@ -11,6 +11,7 @@ import { useCards } from "../contexts/CardContext";
 import { useAccounts } from "../contexts/AccountContext";
 import SectionHeader from "../components/ui/SectionHeader";
 import GlassTabs from "../components/ui/GlassTabs";
+import { useTheme } from "../theme/useTheme";
 
 export default function BudgetMonthly() {
   const { items = [] } = useBudgetAnnual();
@@ -18,6 +19,8 @@ export default function BudgetMonthly() {
   const { categories = [] } = useCategories();
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
+  const { theme, themeName } = useTheme();
+
   const [chartTab, setChartTab] = useState("receitas");
 
   const months = [
@@ -48,9 +51,6 @@ export default function BudgetMonthly() {
     });
   };
 
-  // =========================
-  // SNAPSHOT ÚNICO
-  // =========================
   const budget = getMonthlyBudgetSnapshot(
     items,
     transactions,
@@ -76,29 +76,64 @@ export default function BudgetMonthly() {
     dez: "DEZEMBRO",
   };
 
+  const tooltipStyle =
+    themeName === "light"
+      ? {
+          backgroundColor: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(148,163,184,0.35)",
+          borderRadius: "12px",
+          color: "#0f172a",
+        }
+      : {
+          backgroundColor: "rgba(2,6,23,0.8)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "12px",
+          color: "#fff",
+        };
+
   return (
-    <div className="relative h-full overflow-hidden px-4 pt-5 pb-28 lg:p-6 flex justify-center">
+    <div
+      className={`
+        relative h-full overflow-hidden
+        px-4 pt-5 pb-28 lg:p-6
+        flex justify-center
+        ${theme.textPrimary}
+      `}
+    >
       <div className="flex flex-1 h-full items-start overflow-hidden min-h-0">
         <div className="flex-1 flex justify-center h-full overflow-hidden">
           <div className="w-full max-w-5xl mx-auto h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
-            {/* TOPO FIXO */}
             <div className="shrink-0 flex flex-col gap-4">
               <SectionHeader
                 title="Orçamento Mensal"
                 subtitle="Planejamento mensal de receitas e despesas"
                 icon={
                   <img
-                    src="/logo-ni-branca.svg"
+                    src={
+                      themeName === "light"
+                        ? "/logo-ni-preta.svg"
+                        : "/logo-ni-branca.svg"
+                    }
                     className="w-6 h-6 object-contain"
                   />
                 }
               />
 
-              {/* SALDO */}
-              <div className="bg-white/5 backdrop-blur-xl p-4 lg:p-6 rounded-2xl border border-white/10 shadow-lg">
-                <p className="text-sm text-gray-400 mb-1">
+              <div
+                className={`
+                  ${theme.surface}
+                  border ${theme.border}
+                  backdrop-blur-xl
+                  p-4 lg:p-6
+                  rounded-2xl
+                  shadow-lg
+                `}
+              >
+                <p className={`text-sm mb-1 ${theme.textSecondary}`}>
                   Saldo de{" "}
-                  <span className="font-semibold text-white">
+                  <span className={`font-semibold ${theme.textPrimary}`}>
                     {monthNames[selectedMonth]}
                   </span>
                 </p>
@@ -107,7 +142,6 @@ export default function BudgetMonthly() {
                 <NubankBar receitas={receitas} despesas={despesas} />
               </div>
 
-              {/* MESES */}
               <GlassTabs
                 value={selectedMonth}
                 onChange={setSelectedMonth}
@@ -117,45 +151,38 @@ export default function BudgetMonthly() {
                 }))}
               />
 
-              {/* MOBILE TABS */}
               <div className="lg:hidden">
                 <GlassTabs
                   value={chartTab}
                   onChange={setChartTab}
                   tabs={[
-                    {
-                      value: "receitas",
-                      label: "Receitas",
-                    },
-                    {
-                      value: "despesas",
-                      label: "Despesas",
-                    },
+                    { value: "receitas", label: "Receitas" },
+                    { value: "despesas", label: "Despesas" },
                   ]}
                 />
               </div>
 
-              {/* GRÁFICOS */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                {/* RECEITAS */}
                 <div
                   className={`
-                  ${chartTab === "receitas" ? "block" : "hidden"}
-                  lg:block
-                  bg-white/5
-                  backdrop-blur-xl
-                  p-4
-                  pb-8
-                  lg:p-6
-                  lg:pb-15
-                  rounded-2xl
-                  border border-white/10
-                  shadow-lg
-                  h-[210px]
-                  lg:h-72
-                `}
+                    ${chartTab === "receitas" ? "block" : "hidden"}
+                    lg:block
+                    ${theme.surface}
+                    border ${theme.border}
+                    backdrop-blur-xl
+                    p-4
+                    pb-8
+                    lg:p-6
+                    lg:pb-15
+                    rounded-2xl
+                    shadow-lg
+                    h-[210px]
+                    lg:h-72
+                  `}
                 >
-                  <p className="text-sm text-gray-400 mb-2">Receitas</p>
+                  <p className={`text-sm ${theme.textSecondary} mb-2`}>
+                    Receitas
+                  </p>
 
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -168,7 +195,10 @@ export default function BudgetMonthly() {
                         paddingAngle={5}
                       >
                         {receitasData.map((_, i) => (
-                          <Cell key={i} fill={["#3EF2C2", "#A0A7B1"][i % 2]} />
+                          <Cell
+                            key={i}
+                            fill={[theme.chartIncome, "#A0A7B1"][i % 2]}
+                          />
                         ))}
                       </Pie>
 
@@ -179,43 +209,39 @@ export default function BudgetMonthly() {
                         dominantBaseline="middle"
                         fontSize="16"
                         fontWeight="600"
-                        fill="#3EF2C2"
+                        fill={theme.chartIncome}
                       >
                         {formatCurrency(receitas)}
                       </text>
 
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(2,6,23,0.8)",
-                          backdropFilter: "blur(10px)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
-                        }}
+                        contentStyle={tooltipStyle}
                         formatter={(v) => formatCurrency(v)}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* DESPESAS */}
                 <div
                   className={`
-                  ${chartTab === "despesas" ? "block" : "hidden"}
-                  lg:block
-                  bg-white/5
-                  backdrop-blur-xl
-                  p-4
-                  pb-8
-                  lg:p-6
-                  lg:pb-15
-                  rounded-2xl
-                  border border-white/10
-                  shadow-lg
-                  h-[210px]
-                  lg:h-72
-                `}
+                    ${chartTab === "despesas" ? "block" : "hidden"}
+                    lg:block
+                    ${theme.surface}
+                    border ${theme.border}
+                    backdrop-blur-xl
+                    p-4
+                    pb-8
+                    lg:p-6
+                    lg:pb-15
+                    rounded-2xl
+                    shadow-lg
+                    h-[210px]
+                    lg:h-72
+                  `}
                 >
-                  <p className="text-sm text-gray-400 mb-2">Despesas</p>
+                  <p className={`text-sm ${theme.textSecondary} mb-2`}>
+                    Despesas
+                  </p>
 
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -228,7 +254,10 @@ export default function BudgetMonthly() {
                         paddingAngle={5}
                       >
                         {despesasData.map((_, i) => (
-                          <Cell key={i} fill={["#FF7A6B", "#A0A7B1"][i % 2]} />
+                          <Cell
+                            key={i}
+                            fill={[theme.chartExpense, "#A0A7B1"][i % 2]}
+                          />
                         ))}
                       </Pie>
 
@@ -239,18 +268,13 @@ export default function BudgetMonthly() {
                         dominantBaseline="middle"
                         fontSize="16"
                         fontWeight="600"
-                        fill="#FF7A6B"
+                        fill={theme.chartExpense}
                       >
                         {formatCurrency(despesas)}
                       </text>
 
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(2,6,23,0.8)",
-                          backdropFilter: "blur(10px)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
-                        }}
+                        contentStyle={tooltipStyle}
                         formatter={(v) => formatCurrency(v)}
                       />
                     </PieChart>
@@ -259,58 +283,83 @@ export default function BudgetMonthly() {
               </div>
             </div>
 
-            {/* LISTA */}
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <div className="shrink-0">
-                <h2 className="text-xl lg:text-2xl font-semibold">
+                <h2
+                  className={`text-xl lg:text-2xl font-semibold ${theme.textPrimary}`}
+                >
                   Lançamentos
                 </h2>
               </div>
 
               <div className="flex-1 min-h-0 overflow-y-auto pr-1 lg:pr-2 flex flex-col gap-3 no-scrollbar mt-4 pb-4 lg:pb-5">
-                {monthlyItems.map((item) => (
-                  <div
-                    key={item.id + item.data}
-                    className="
-                    bg-white/5
-                    backdrop-blur-xl
-                    p-4 lg:p-5
-                    rounded-xl
-                    flex
-                    justify-between
-                    items-center
-                    border border-white/10
-                    hover:bg-white/10
-                    transition
-                    gap-4
-                  "
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <img
-                        src={getPaymentVisual({ item, cards, accounts })}
-                        className="w-8 h-8 object-contain shrink-0"
-                      />
-
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{item.descricao}</p>
-
-                        <p className="text-sm text-gray-400 truncate">
-                          {item.categoriaNome || "Sem categoria"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <p
-                      className={`font-semibold shrink-0 ${
-                        item.tipo === "receita"
-                          ? "text-emerald-400"
-                          : "text-red-400"
-                      }`}
+                {monthlyItems.length === 0 ? (
+                  <p className={theme.textMuted}>Nenhum lançamento ainda</p>
+                ) : (
+                  monthlyItems.map((item) => (
+                    <div
+                      key={item.id + item.data}
+                      className={`
+                        flex items-center justify-between gap-4
+                        p-4 lg:p-5
+                        rounded-[24px]
+                        border
+                        backdrop-blur-xl
+                        transition-all
+                        ${
+                          themeName === "light"
+                            ? "bg-white/70 border-slate-200/70 hover:bg-white"
+                            : "bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.07]"
+                        }
+                      `}
                     >
-                      {formatCurrency(item.valorFinal ?? item.valor)}
-                    </p>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div
+                          className={`
+                            w-11 h-11 rounded-2xl
+                            flex items-center justify-center
+                            shrink-0 border
+                            ${
+                              themeName === "light"
+                                ? "bg-white/80 border-slate-200/80 shadow-sm"
+                                : "bg-white/[0.04] border-white/[0.08]"
+                            }
+                          `}
+                        >
+                          <img
+                            src={getPaymentVisual({ item, cards, accounts })}
+                            className={`
+                              w-6 h-6 object-contain
+                              ${themeName === "light" ? "invert opacity-70" : ""}
+                            `}
+                          />
+                        </div>
+
+                        <div className="min-w-0">
+                          <p
+                            className={`font-medium truncate ${theme.textPrimary}`}
+                          >
+                            {item.descricao}
+                          </p>
+
+                          <p
+                            className={`text-sm truncate ${theme.textSecondary}`}
+                          >
+                            {item.categoriaNome || "Sem categoria"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p
+                        className={`font-semibold shrink-0 ${
+                          item.tipo === "receita" ? theme.success : theme.danger
+                        }`}
+                      >
+                        {formatCurrency(item.valorFinal ?? item.valor)}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

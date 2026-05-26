@@ -7,6 +7,7 @@ import { usePaymentSchedule } from "../contexts/PaymentScheduleContext";
 import { useAccounts } from "../contexts/AccountContext";
 import { mapAccountsWithBalance } from "../core/selectors/accountSelectors";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../theme/useTheme";
 import SectionHeader from "../components/ui/SectionHeader";
 import GlassTabs from "../components/ui/GlassTabs";
 import Chart from "react-apexcharts";
@@ -17,6 +18,7 @@ export default function Schedule() {
   const { cards = [] } = useCards();
   const { paidIds, markAsPaid, unmarkAsPaid } = usePaymentSchedule();
   const { accounts = [] } = useAccounts();
+  const { theme, themeName } = useTheme();
 
   const months = [
     "jan",
@@ -143,20 +145,21 @@ export default function Schedule() {
         exit={{ opacity: 0, x: 40, scale: 0.95 }}
         transition={{ duration: 0.25 }}
         className={`
-        relative
-        overflow-hidden
-        rounded-[24px]
-        border
-        p-4
-        bg-white/[0.04]
+        relative overflow-hidden rounded-[24px] border p-4
         backdrop-blur-xl
         flex items-center justify-between gap-4
         ${
           isToday
-            ? "border-yellow-400/20 bg-yellow-400/[0.07]"
+            ? themeName === "light"
+              ? "border-yellow-200 bg-yellow-50/70"
+              : "border-yellow-400/20 bg-yellow-400/[0.07]"
             : isOverdue
-              ? "border-red-400/20 bg-red-400/[0.07]"
-              : "border-white/[0.08]"
+              ? themeName === "light"
+                ? "border-red-200 bg-red-50/70"
+                : "border-red-400/20 bg-red-400/[0.07]"
+              : themeName === "light"
+                ? "border-slate-200/70 bg-white/70"
+                : "border-white/[0.08] bg-white/[0.04]"
         }
       `}
       >
@@ -181,14 +184,14 @@ export default function Schedule() {
 
             <p
               className={`font-medium truncate ${
-                isPaid ? "line-through text-gray-400" : "text-white"
+                isPaid ? `line-through ${theme.textMuted}` : theme.textPrimary
               }`}
             >
               {item.descricao}
             </p>
           </div>
 
-          <p className="text-xs text-gray-400 mt-1">
+          <p className={`text-xs ${theme.textSecondary} mt-1`}>
             {item.origem === "orcamento" ? "Orçamento" : "Fatura"}
           </p>
 
@@ -202,7 +205,7 @@ export default function Schedule() {
         </div>
 
         <div className="relative z-10 flex flex-col items-end gap-3 shrink-0">
-          <p className="text-white font-semibold">
+          <p className={`font-semibold ${theme.textPrimary}`}>
             {formatCurrency(item.valor)}
           </p>
 
@@ -217,8 +220,12 @@ export default function Schedule() {
             transition-all
             ${
               isPaid
-                ? "bg-emerald-400 border-emerald-400"
-                : "bg-white/10 border-white/15"
+                ? themeName === "light"
+                  ? "bg-emerald-400 border-emerald-400"
+                  : "bg-emerald-400 border-emerald-400"
+                : themeName === "light"
+                  ? "bg-slate-200 border-slate-300"
+                  : "bg-white/10 border-white/15"
             }
           `}
           >
@@ -240,7 +247,13 @@ export default function Schedule() {
               flex items-center justify-center
               text-[10px]
               font-bold
-              ${isPaid ? "bg-black text-emerald-300" : "bg-white/70 text-black"}
+              ${
+                isPaid
+                  ? "bg-black text-emerald-300"
+                  : themeName === "light"
+                    ? "bg-white text-slate-500 shadow-sm"
+                    : "bg-white/70 text-black"
+              }
             `}
             >
               {isPaid ? "✓" : ""}
@@ -354,27 +367,25 @@ export default function Schedule() {
 
   return (
     <div
-      className="
-    h-full
-    overflow-hidden
-    px-3
-    pt-4
-    pb-36
-    lg:p-6
-    flex
-    justify-center
-    text-white
-    no-scrollbar
-  "
+      className={`
+      h-full min-h-0 overflow-hidden
+      px-3 pt-4 pb-0 lg:p-6
+      flex justify-center no-scrollbar
+      ${theme.textPrimary}
+    `}
     >
-      <div className="w-full max-w-4xl h-full flex flex-col gap-4 lg:gap-6">
+      <div className="w-full max-w-4xl h-full min-h-0 flex flex-col gap-4 lg:gap-6 overflow-hidden">
         <div className="shrink-0 flex flex-col gap-4 lg:gap-6">
           <SectionHeader
             title="Agenda de pagamentos"
             subtitle="Previsão de contas, faturas e pagamentos do mês"
             icon={
               <img
-                src="/logo-ni-branca.svg"
+                src={
+                  themeName === "light"
+                    ? "/logo-ni-preta.svg"
+                    : "/logo-ni-branca.svg"
+                }
                 className="w-6 h-6 object-contain"
               />
             }
@@ -391,32 +402,70 @@ export default function Schedule() {
           />
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-2.5 lg:p-3">
-              <p className="text-xs text-gray-400">Previsto</p>
-              <p className="text-white font-medium mt-1">
+            <div
+              className={`
+              ${theme.surface}
+              border ${theme.border}
+              rounded-2xl
+              p-2.5 lg:p-3
+              backdrop-blur-xl
+            `}
+            >
+              <p className={`text-xs ${theme.textSecondary}`}>Previsto</p>
+
+              <p className={`font-medium mt-1 ${theme.textPrimary}`}>
                 {formatCurrency(totalPrevisto)}
               </p>
             </div>
 
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-2.5 lg:p-3">
-              <p className="text-xs text-gray-400">Pago</p>
-              <p className="text-emerald-300 font-medium mt-1">
+            <div
+              className={`
+              ${theme.surface}
+              border ${theme.border}
+              rounded-2xl
+              p-2.5 lg:p-3
+              backdrop-blur-xl
+            `}
+            >
+              <p className={`text-xs ${theme.textSecondary}`}>Pago</p>
+
+              <p className={`font-medium mt-1 ${theme.success}`}>
                 {formatCurrency(totalPago)}
               </p>
             </div>
 
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-2.5 lg:p-3">
-              <p className="text-xs text-gray-400">Pendente</p>
-              <p className="text-red-300 font-medium mt-1">
+            <div
+              className={`
+              ${theme.surface}
+              border ${theme.border}
+              rounded-2xl
+              p-2.5 lg:p-3
+              backdrop-blur-xl
+            `}
+            >
+              <p className={`text-xs ${theme.textSecondary}`}>Pendente</p>
+
+              <p className={`font-medium mt-1 ${theme.danger}`}>
                 {formatCurrency(totalPendente)}
               </p>
             </div>
 
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-2.5 lg:p-3">
-              <p className="text-xs text-gray-400">Saldo projetado</p>
+            <div
+              className={`
+              ${theme.surface}
+              border ${theme.border}
+              rounded-2xl
+              p-2.5 lg:p-3
+              backdrop-blur-xl
+            `}
+            >
+              <p className={`text-xs ${theme.textSecondary}`}>
+                Saldo projetado
+              </p>
+
               <p
                 className={`font-medium mt-1 ${
-                  saldoProjetado < 0 ? "text-red-300" : "text-emerald-300"
+                  saldoProjetado < 0 ? theme.danger : theme.success
                 }`}
               >
                 {formatCurrency(saldoProjetado)}
@@ -425,23 +474,26 @@ export default function Schedule() {
           </div>
 
           <div
-            className="
-    bg-white/[0.04]
-    border border-white/[0.08]
-    rounded-2xl
-    px-3
-    py-2.5
-    backdrop-blur-xl
-    overflow-visible
-  "
+            className={`
+            ${theme.surface}
+            border ${theme.border}
+            rounded-2xl
+            px-3
+            py-2.5
+            backdrop-blur-xl
+            overflow-visible
+            shadow-lg
+          `}
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs text-white/50">Previsão do fim do mês</p>
+                <p className={`text-xs ${theme.textMuted}`}>
+                  Previsão do fim do mês
+                </p>
 
                 <p
                   className={`text-lg lg:text-2xl font-semibold mt-1 ${
-                    saldoProjetado < 0 ? "text-red-300" : "text-emerald-300"
+                    saldoProjetado < 0 ? theme.danger : theme.success
                   }`}
                 >
                   {formatCurrency(saldoProjetado)}
@@ -450,16 +502,21 @@ export default function Schedule() {
 
               <div
                 className={`
-        shrink-0
-        px-3 py-1
-        rounded-full
-        text-[11px]
-        ${
-          saldoProjetado < 0
-            ? "bg-red-400/10 text-red-300"
-            : "bg-emerald-400/10 text-emerald-300"
-        }
-      `}
+                shrink-0
+                px-3 py-1
+                rounded-full
+                text-[11px]
+                border
+                ${
+                  saldoProjetado < 0
+                    ? themeName === "light"
+                      ? "bg-red-50 border-red-100 text-red-500"
+                      : "bg-red-400/10 border-red-400/10 text-red-300"
+                    : themeName === "light"
+                      ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                      : "bg-emerald-400/10 border-emerald-400/10 text-emerald-300"
+                }
+              `}
               >
                 {saldoProjetado < 0 ? "Negativo" : "Saudável"}
               </div>
@@ -477,15 +534,16 @@ export default function Schedule() {
         </div>
 
         <div
-  className="
-    min-h-0
-    flex-1
-    overflow-y-auto
-    no-scrollbar
-    cursor-pointer
-    pb-28 lg:pb-5
-  "
->
+          className="
+          min-h-0
+          flex-1
+          overflow-y-auto
+          overflow-x-hidden
+          no-scrollbar
+          cursor-pointer
+          pb-32 lg:pb-5
+        "
+        >
           {schedule.length === 0 ? (
             <p className="text-gray-400 text-sm">
               Nenhum pagamento previsto para este mês.

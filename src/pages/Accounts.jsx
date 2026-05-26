@@ -3,17 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import SectionHeader from "../components/ui/SectionHeader";
 import { useAccounts } from "../contexts/AccountContext";
 import RightSidebarAccounts from "../components/RightSidebarAccounts";
-import { getBank } from "../data/banks";
 import { useTransactions } from "../contexts/TransactionContext";
 import { mapAccountsWithBalance } from "../core/selectors/accountSelectors";
 import AccountDetailsModal from "../components/accounts/AccountDetailsModal";
 import AccountCard from "../components/accounts/AccountCard";
 import BottomSheet from "../components/ui/BottomSheet";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
+import { useTheme } from "../theme/useTheme";
 
 export default function Accounts() {
   const { accounts, remove } = useAccounts();
   const { transactions = [] } = useTransactions();
+  const { theme, themeName } = useTheme();
 
   const accountsWithBalance = mapAccountsWithBalance(accounts, transactions);
 
@@ -37,42 +38,57 @@ export default function Accounts() {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row h-full overflow-hidden">
-      {/* LISTA */}
+    <div
+      className={`relative flex flex-col lg:flex-row h-full overflow-hidden ${theme.textPrimary}`}
+    >
       <div
         className="
-    flex-1
-    min-h-0
-    overflow-y-auto
-    px-4
-    pt-5
-    pb-36
-    lg:p-6
-    lg:pr-[360px]
-    no-scrollbar
-  "
+          flex-1
+          min-h-0
+          h-full
+          overflow-hidden
+          px-4
+          pt-5
+          pb-0
+          lg:p-6
+          lg:pr-[360px]
+          no-scrollbar
+        "
       >
-        <SectionHeader
-          title="Contas"
-          subtitle="Suas contas e saldos"
-          className="mb-6"
-          icon={
-            <img src="/logo-ni-branca.svg" className="w-6 h-6 object-contain" />
-          }
-        />
-
-        <div className="flex flex-wrap gap-6">
-          {accountsWithBalance.map((a) => (
-            <AccountCard
-              key={a.id}
-              account={a}
-              transactions={transactions}
-              formatCurrency={formatCurrency}
-              onSelect={setSelected}
-              onEdit={handleEdit}
-              onDelete={setConfirmDelete}
+        <div className="w-full h-full min-h-0 flex flex-col overflow-hidden">
+          <div className="shrink-0">
+            <SectionHeader
+              title="Contas"
+              subtitle="Suas contas e saldos"
+              className="mb-6"
+              icon={
+                <img
+                  src={
+                    themeName === "light"
+                      ? "/logo-ni-preta.svg"
+                      : "/logo-ni-branca.svg"
+                  }
+                  className="w-6 h-6 object-contain"
+                />
+              }
             />
-          ))}
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar pb-32 lg:pb-5">
+            <div className="flex flex-wrap gap-6">
+              {accountsWithBalance.map((a) => (
+                <AccountCard
+                  key={a.id}
+                  account={a}
+                  transactions={transactions}
+                  formatCurrency={formatCurrency}
+                  onSelect={setSelected}
+                  onEdit={handleEdit}
+                  onDelete={setConfirmDelete}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -83,12 +99,10 @@ export default function Accounts() {
         formatCurrency={formatCurrency}
       />
 
-      {/* SIDEBAR */}
       <div className="hidden lg:block">
         <RightSidebarAccounts editing={editando} setEditing={setEditando} />
       </div>
 
-      {/* FAB MOBILE */}
       <FloatingActionButton
         open={showMobileForm}
         onClick={() => {
@@ -133,20 +147,33 @@ export default function Accounts() {
               exit={{ opacity: 0, scale: 0.94, y: 12 }}
               transition={{ duration: 0.18 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[340px] rounded-[28px] bg-[#0B0F1A] border border-white/10 p-5"
+              className={`
+                w-full max-w-[340px] rounded-[28px]
+                ${theme.surface}
+                border ${theme.border}
+                ${theme.textPrimary}
+                p-5
+              `}
             >
-              <h3 className="text-white text-lg font-semibold">
+              <h3 className={`text-lg font-semibold ${theme.textPrimary}`}>
                 Excluir conta?
               </h3>
 
-              <p className="text-sm text-gray-400 mt-2">
+              <p className={`text-sm mt-2 ${theme.textSecondary}`}>
                 Essa ação não pode ser desfeita.
               </p>
 
               <div className="flex gap-3 mt-5">
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="flex-1 h-11 rounded-2xl bg-white/10 text-white"
+                  className={`
+                    flex-1 h-11 rounded-2xl border
+                    ${
+                      themeName === "light"
+                        ? "bg-slate-200/70 border-slate-200 text-slate-700"
+                        : "bg-white/10 border-white/[0.06] text-white"
+                    }
+                  `}
                 >
                   Cancelar
                 </button>

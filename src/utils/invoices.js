@@ -1,7 +1,10 @@
-export function generateInvoice({ transactions, card, month, year }) {
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month - 1, 31);
-
+export function generateInvoice({
+  transactions = [],
+  budgetItems = [],
+  card,
+  month,
+  year,
+}) {
   const expanded = [];
 
   const parseDate = (date) => {
@@ -27,10 +30,51 @@ export function generateInvoice({ transactions, card, month, year }) {
     return { mes: mes + 1, ano }; // mês atual (1–12)
   };
 
-  transactions.forEach((t) => {
-    if (String(t.cartaoId) !== String(card.id)) return;
+  const months = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
 
-    console.log("FORMA PAGAMENTO:", t.formaPagamento);
+  const budgetAsTransactions = [];
+
+  budgetItems.forEach((item) => {
+    if (item.formaPagamento !== "credito") return;
+    if (String(item.cartaoId) !== String(card.id)) return;
+
+    const anos = [year - 1, year, year + 1];
+
+    anos.forEach((anoBase) => {
+      months.forEach((m, index) => {
+        if (!item.meses?.includes(m)) return;
+
+        budgetAsTransactions.push({
+          id: `budget-${item.id}-${m}-${anoBase}`,
+          descricao: item.descricao,
+          valor: Number(item.valorMensal || 0),
+          data: `${anoBase}-${String(index + 1).padStart(2, "0")}-${String(
+            item.diaVencimento || 1,
+          ).padStart(2, "0")}`,
+          formaPagamento: "credito",
+          cartaoId: item.cartaoId,
+          parcelas: 1,
+          origem: "orcamento",
+        });
+      });
+    });
+  });
+
+  [...transactions, ...budgetAsTransactions].forEach((t) => {
+    if (String(t.cartaoId) !== String(card.id)) return;
 
     if (t.formaPagamento !== "credito") return;
 
@@ -60,8 +104,6 @@ export function generateInvoice({ transactions, card, month, year }) {
     }
   });
 
-  console.log("EXPANDED:", expanded);
-
   const filtered = expanded.filter((t) => {
     return t.mesFatura === month && t.anoFatura === year;
   });
@@ -78,12 +120,15 @@ export const groupByDate = (transactions) => {
   const groups = {};
 
   transactions.forEach((t) => {
-    const date = new Date(t.data);
-    const key = date.toISOString().split("T")[0];
+    const date = t.data instanceof Date ? t.data : new Date(t.data);
 
-    if (!groups[key]) {
-      groups[key] = [];
-    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    const key = `${year}-${month}-${day}`;
+
+    if (!groups[key]) groups[key] = [];
 
     groups[key].push(t);
   });
@@ -92,10 +137,13 @@ export const groupByDate = (transactions) => {
 };
 
 export const formatDateLabel = (dateStr) => {
-  const date = new Date(dateStr);
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
 
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-  }).toUpperCase();
+  return date
+    .toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+    })
+    .toUpperCase();
 };

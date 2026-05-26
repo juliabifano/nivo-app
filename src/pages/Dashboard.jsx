@@ -1,6 +1,7 @@
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
 import { getInsights } from "../features/dashboard/utils/getInsights";
 import { motion } from "framer-motion";
+import { useTheme } from "../theme/useTheme";
 
 import TopExpensesCard from "../components/dashboard/TopExpensesCard";
 import RecentTransactionsCard from "../components/dashboard/RecentTransactionsCard";
@@ -13,6 +14,8 @@ import DashboardHeader from "../components/dashboard/DashboardHeader";
 import DashboardSkeleton from "../components/dashboard/skeletons/DashboardSkeleton";
 
 export default function Dashboard() {
+  const { theme } = useTheme();
+
   const {
     dashboard,
     chartData,
@@ -64,7 +67,16 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="h-full w-full max-w-full overflow-x-hidden overflow-y-auto xl:overflow-hidden px-4 md:px-6 py-4 pb-28 xl:pb-4 text-white no-scrollbar">
+    <div
+      className={`
+    h-full w-full max-w-full
+    overflow-x-hidden overflow-y-auto
+    xl:overflow-hidden
+    px-4 md:px-6 py-4 pb-28 xl:pb-4
+    no-scrollbar
+    ${theme.textPrimary}
+  `}
+    >
       <div className="min-h-full xl:h-full w-full max-w-[1600px] mx-auto flex flex-col gap-4 overflow-x-hidden">
         <DashboardHeader
           currentMonth={monthNames[dashboard.currentMonth]}

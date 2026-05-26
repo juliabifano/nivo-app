@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCards } from "../contexts/CardContext";
 import { BANKS, getBank } from "../data/banks";
 import { useAccounts } from "../contexts/AccountContext";
+import { useTheme } from "../theme/useTheme";
 
 export default function RightSidebarCards({
   editandoCartao,
@@ -11,6 +12,7 @@ export default function RightSidebarCards({
 }) {
   const { cards, add, update } = useCards();
   const { accounts } = useAccounts();
+  const { theme, themeName } = useTheme();
 
   const [form, setForm] = useState({
     nome: "",
@@ -139,12 +141,46 @@ export default function RightSidebarCards({
     return num.replace(/(.{4})/g, "$1 ").trim();
   };
 
+  const inputClass = `
+  w-full h-12 px-4 rounded-2xl outline-none cursor-pointer
+  border
+  ${
+    themeName === "light"
+      ? "bg-white/80 border-slate-200/80 text-slate-900 placeholder:text-slate-400"
+      : "bg-[#111827] border-white/[0.06] text-white placeholder:text-gray-500"
+  }
+`;
+
+  const desktopInputClass = `
+  w-full p-2 rounded-lg outline-none cursor-pointer
+  ${theme.surface}
+  border ${theme.border}
+  ${theme.textPrimary}
+`;
+
+  const fieldClass = isMobile ? inputClass : desktopInputClass;
+
+  const optionClass =
+  themeName === "light"
+    ? "bg-white text-slate-900"
+    : "bg-[#111827] text-white";
+
   return (
     <div
       className={
         isMobile
-          ? "w-full p-5 space-y-4 pb-32"
-          : "fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40 bg-[#0B0F1A]/70 p-5 space-y-3 rounded-2xl shadow-xl border border-gray-800 backdrop-blur-md"
+          ? `
+        w-full p-5 space-y-4 pb-32
+        ${theme.textPrimary}
+        ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
+      `
+          : `
+        fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40
+        ${theme.surface}
+        border ${theme.border}
+        ${theme.textPrimary}
+        p-5 space-y-3 rounded-2xl shadow-xl backdrop-blur-md
+      `
       }
     >
       <h2 className="text-lg font-semibold mb-4">
@@ -153,19 +189,7 @@ export default function RightSidebarCards({
 
       {/* NOME */}
       <input
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg"
-        }
+        className={fieldClass}
         placeholder="Nome do cartão"
         value={form.nome}
         onChange={(e) => setForm({ ...form, nome: e.target.value })}
@@ -173,19 +197,7 @@ export default function RightSidebarCards({
 
       {/* NÚMERO */}
       <input
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg"
-        }
+        className={fieldClass}
         placeholder="Número do cartão (opcional)"
         value={form.numeroCartao || ""}
         maxLength={19}
@@ -198,19 +210,7 @@ export default function RightSidebarCards({
 
       {/* BANCO */}
       <select
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-        }
+        className={fieldClass}
         value={form.banco}
         onChange={(e) => {
           const banco = e.target.value;
@@ -224,43 +224,33 @@ export default function RightSidebarCards({
           });
         }}
       >
-        <option value="">Selecionar banco</option>
+        <option className={optionClass} value="">Selecionar banco</option>
 
         {Object.entries(BANKS).map(([key, bank]) => (
-          <option key={key} value={key}>
+          <option className={optionClass} key={key} value={key}>
             {bank.nome}
           </option>
         ))}
       </select>
 
       {accounts.filter((a) => a.banco === form.banco).length === 0 && (
-        <p className="text-xs text-gray-400">Nenhuma conta desse banco</p>
+        <p className={`text-xs ${theme.textSecondary}`}>
+          Nenhuma conta desse banco
+        </p>
       )}
 
       {/* CONTA */}
       <select
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-        }
+        className={fieldClass}
         value={form.accountId}
         onChange={(e) => setForm({ ...form, accountId: e.target.value })}
       >
-        <option value="">Conta vinculada</option>
+        <option className={optionClass} value="">Conta vinculada</option>
 
         {accounts
           .filter((a) => a.banco === form.banco)
           .map((a) => (
-            <option key={a.id} value={a.id}>
+            <option className={optionClass} key={a.id} value={a.id}>
               {a.nome}
             </option>
           ))}
@@ -268,19 +258,7 @@ export default function RightSidebarCards({
 
       {/* TIPO */}
       <select
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-        }
+        className={fieldClass}
         value={form.tipo}
         onChange={(e) => {
           const tipo = e.target.value;
@@ -296,10 +274,10 @@ export default function RightSidebarCards({
           });
         }}
       >
-        <option value="credito">Crédito</option>
-        <option value="debito">Débito</option>
-        <option value="multiplo">Múltiplo</option>
-        <option value="vale">Vale</option>
+        <option className={optionClass} value="credito">Crédito</option>
+        <option className={optionClass} value="debito">Débito</option>
+        <option className={optionClass} value="multiplo">Múltiplo</option>
+        <option className={optionClass} value="vale">Vale</option>
       </select>
 
       {/* CAMPOS DINÂMICOS */}
@@ -307,19 +285,7 @@ export default function RightSidebarCards({
         <>
           {/* SALDO */}
           <input
-            className={
-              isMobile
-                ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-                : "w-full p-2 bg-[#111827] rounded-lg"
-            }
+            className={fieldClass}
             type="number"
             placeholder="Saldo inicial"
             value={form.saldoInicial || ""}
@@ -328,19 +294,7 @@ export default function RightSidebarCards({
 
           {/* RESET */}
           <input
-            className={
-              isMobile
-                ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-                : "w-full p-2 bg-[#111827] rounded-lg"
-            }
+            className={fieldClass}
             type="number"
             placeholder="Dia do reset"
             value={form.diaReset || ""}
@@ -353,19 +307,7 @@ export default function RightSidebarCards({
         <>
           {/* LIMITE */}
           <input
-            className={
-              isMobile
-                ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-                : "w-full p-2 bg-[#111827] rounded-lg"
-            }
+            className={fieldClass}
             type="number"
             placeholder="Limite"
             value={form.limite}
@@ -374,40 +316,16 @@ export default function RightSidebarCards({
 
           {/* VENCIMENTO */}
           <input
-            className={
-              isMobile
-                ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-                : "w-full p-2 bg-[#111827] rounded-lg"
-            }
+            className={fieldClass}
             type="number"
             placeholder="Dia do vencimento"
             value={form.vencimento}
             onChange={(e) => setForm({ ...form, vencimento: e.target.value })}
           />
 
-          {/* FECHAMENTO 🔥 */}
+          {/* FECHAMENTO */}
           <input
-            className={
-              isMobile
-                ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-                : "w-full p-2 bg-[#111827] rounded-lg"
-            }
+            className={fieldClass}
             type="number"
             placeholder="Dia do fechamento"
             value={form.fechamento || ""}
@@ -416,7 +334,7 @@ export default function RightSidebarCards({
         </>
       )}
 
-      {/* PREVIEW 🔥 */}
+      {/* PREVIEW */}
       {form.banco && (
         <div
           className="relative rounded-xl overflow-hidden mt-2 h-[140px]"
@@ -513,15 +431,23 @@ export default function RightSidebarCards({
           className={
             isMobile
               ? `
-        w-full
-        h-12
-        rounded-2xl
-        bg-white/10
-        text-white
-        active:scale-[0.98]
-        transition-all
-      `
-              : "cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg"
+      w-full h-12 rounded-2xl border
+      ${
+        themeName === "light"
+          ? "bg-slate-200/70 border-slate-200 text-slate-700"
+          : "bg-white/10 border-white/[0.06] text-white"
+      }
+      active:scale-[0.98]
+      transition-all
+    `
+              : `
+      cursor-pointer w-full h-12 rounded-2xl border
+      ${
+        themeName === "light"
+          ? "bg-slate-200/70 border-slate-200 text-slate-700"
+          : "bg-gray-700 border-white/[0.06] text-white"
+      }
+    `
           }
         >
           Cancelar edição

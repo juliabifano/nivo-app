@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../../theme/useTheme";
 
 export default function BottomSheet({
   open,
@@ -7,6 +8,8 @@ export default function BottomSheet({
   className = "",
   style,
 }) {
+  const { themeName } = useTheme();
+
   return (
     <AnimatePresence>
       {open && (
@@ -14,13 +17,13 @@ export default function BottomSheet({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="
+          className={`
             fixed inset-0
             z-50
-            bg-black/60
             backdrop-blur-md
             flex items-end lg:items-center justify-center
-          "
+            ${themeName === "light" ? "bg-slate-900/35" : "bg-black/60"}
+          `}
           onClick={onClose}
         >
           <motion.div
@@ -56,28 +59,37 @@ export default function BottomSheet({
             style={style}
             onClick={(e) => e.stopPropagation()}
             className={`
-    relative
-    w-full
-    h-[92vh]
+              relative
+              w-full
+              h-[92vh]
 
-    lg:w-[720px]
-    lg:h-auto
-    lg:max-h-[82vh]
+              lg:w-[720px]
+              lg:h-auto
+              lg:max-h-[82vh]
 
-    rounded-t-[32px]
-    lg:rounded-[28px]
+              rounded-t-[32px]
+              lg:rounded-[28px]
 
-    overflow-y-auto
-    overflow-x-hidden
-    no-scrollbar
+              overflow-y-auto
+              overflow-x-hidden
+              no-scrollbar
 
-    bg-[#0B0F1A]
-    border-t border-white/10
+              border-t
+              ${
+                themeName === "light"
+                  ? "bg-[#F4F7F6] border-white/70 shadow-[0_-24px_80px_rgba(15,23,42,0.18)]"
+                  : "bg-[#0B0F1A] border-white/10"
+              }
 
-    ${className}
-  `}
+              ${className}
+            `}
           >
-            <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mt-3 mb-5 lg:hidden" />
+            <div
+              className={`
+                w-12 h-1 rounded-full mx-auto mt-3 mb-5 lg:hidden
+                ${themeName === "light" ? "bg-slate-300" : "bg-white/20"}
+              `}
+            />
 
             {children}
           </motion.div>

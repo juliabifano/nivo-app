@@ -3,6 +3,7 @@ import DatePicker from "../components/DatePicker";
 import CategoryPicker from "../components/CategoryPicker";
 import { useCards } from "../contexts/CardContext";
 import { useAccounts } from "../contexts/AccountContext";
+import { useTheme } from "../theme/useTheme";
 
 export default function RightSidebarTransactions({
   onAdd,
@@ -14,6 +15,7 @@ export default function RightSidebarTransactions({
 }) {
   const { cards } = useCards();
   const { accounts } = useAccounts();
+  const { theme, themeName } = useTheme();
 
   const getToday = () => {
     const today = new Date();
@@ -87,12 +89,47 @@ export default function RightSidebarTransactions({
     }
   }, [editingTransaction]);
 
+  const inputClass = `
+  w-full h-12 px-4 rounded-2xl outline-none cursor-pointer
+  border
+  ${
+    themeName === "light"
+      ? "bg-white/80 border-slate-200/80 text-slate-900 placeholder:text-slate-400"
+      : "bg-[#111827] border-white/[0.06] text-white placeholder:text-gray-500"
+  }
+`;
+
+  const desktopInputClass = `
+  w-full p-2 rounded-lg outline-none cursor-pointer
+  ${theme.surface}
+  border ${theme.border}
+  ${theme.textPrimary}
+`;
+
+  const fieldClass = isMobile ? inputClass : desktopInputClass;
+
+  const optionClass =
+  themeName === "light"
+    ? "bg-white text-slate-900"
+    : "bg-[#111827] text-white";
+
   return (
     <div
       className={
         isMobile
-          ? "w-full p-5 space-y-4"
-          : "fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] bg-[#0B0F1A]/70 p-5 rounded-2xl border border-gray-800 backdrop-blur-md overflow-y-auto space-y-3"
+          ? `
+    w-full p-5 space-y-4
+    ${theme.textPrimary}
+    ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
+  `
+          : `
+        fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
+        ${theme.surface}
+        border ${theme.border}
+        ${theme.textPrimary}
+        p-5 rounded-2xl backdrop-blur-md
+        overflow-y-auto space-y-3
+      `
       }
     >
       <h2 className="text-lg font-semibold mb-4">
@@ -101,19 +138,7 @@ export default function RightSidebarTransactions({
 
       {/* DESCRIÇÃO */}
       <input
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg"
-        }
+        className={fieldClass}
         placeholder="Descrição"
         value={form.descricao}
         onChange={(e) => setForm({ ...form, descricao: e.target.value })}
@@ -127,19 +152,7 @@ export default function RightSidebarTransactions({
 
       {/* VALOR */}
       <input
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg"
-        }
+        className={fieldClass}
         type="number"
         placeholder="Valor"
         value={form.valor}
@@ -153,40 +166,42 @@ export default function RightSidebarTransactions({
       />
 
       {/* TIPO */}
-      <div className="flex gap-2 bg-[#111827] p-1 rounded-xl">
+      <div
+        className={`
+    flex gap-2 p-1 rounded-2xl border
+    ${
+      themeName === "light"
+        ? "bg-white/50 border-slate-200/70"
+        : "bg-[#111827] border-white/[0.06]"
+    }
+  `}
+      >
         {["receita", "despesa"].map((t) => (
           <button
             type="button"
             key={t}
             onClick={() => setForm({ ...form, tipo: t })}
-            className={`flex-1 p-2 rounded-lg ${
-              form.tipo === t
-                ? t === "receita"
-                  ? "bg-emerald-400 text-black"
-                  : "bg-red-400 text-white"
-                : "text-gray-300"
-            }`}
+            className={`
+    flex-1 h-11 rounded-xl text-sm font-medium transition-all
+    ${
+      form.tipo === t
+        ? t === "receita"
+          ? "bg-emerald-400 text-black shadow-[0_10px_25px_rgba(16,185,129,0.18)]"
+          : "bg-red-400 text-white shadow-[0_10px_25px_rgba(239,68,68,0.18)]"
+        : themeName === "light"
+          ? "text-slate-500 hover:bg-white/60"
+          : "text-gray-300 hover:bg-white/[0.04]"
+    }
+  `}
           >
-            {t}
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
 
       {/* PAGAMENTO */}
       <select
-        className={
-          isMobile
-            ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-            : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-        }
+        className={fieldClass}
         value={form.formaPagamento}
         onChange={(e) => {
           const formaPagamento = e.target.value;
@@ -204,28 +219,16 @@ export default function RightSidebarTransactions({
           });
         }}
       >
-        <option value="pix">Pix</option>
-        <option value="debito">Débito</option>
-        <option value="credito">Crédito</option>
-        <option value="dinheiro">Dinheiro</option>
-        <option value="vale">Vale</option>
+        <option className={optionClass} value="pix">Pix</option>
+        <option className={optionClass} value="debito">Débito</option>
+        <option className={optionClass} value="credito">Crédito</option>
+        <option className={optionClass} value="dinheiro">Dinheiro</option>
+        <option className={optionClass} value="vale">Vale</option>
       </select>
 
       {["credito", "debito", "vale"].includes(form.formaPagamento) && (
         <select
-          className={
-            isMobile
-              ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-              : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-          }
+          className={fieldClass}
           value={form.cartaoId}
           onChange={(e) => {
             const cartaoId = e.target.value;
@@ -243,7 +246,7 @@ export default function RightSidebarTransactions({
             });
           }}
         >
-          <option value="">Selecionar cartão</option>
+          <option className={optionClass} value="">Selecionar cartão</option>
 
           {cards
             .filter((c) => {
@@ -262,7 +265,7 @@ export default function RightSidebarTransactions({
               return false;
             })
             .map((c) => (
-              <option key={c.id} value={c.id}>
+              <option className={optionClass} key={c.id} value={c.id}>
                 {c.nome}
               </option>
             ))}
@@ -271,19 +274,7 @@ export default function RightSidebarTransactions({
 
       {form.formaPagamento === "credito" && (
         <input
-          className={
-            isMobile
-              ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      outline-none
-    `
-              : "w-full p-2 bg-[#111827] rounded-lg"
-          }
+          className={fieldClass}
           type="number"
           placeholder="Parcelas"
           value={form.parcelas}
@@ -293,26 +284,14 @@ export default function RightSidebarTransactions({
 
       {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
         <select
-          className={
-            isMobile
-              ? `
-      w-full
-      h-12
-      px-4
-      bg-[#111827]
-      border border-white/[0.06]
-      rounded-2xl
-      cursor-pointer
-    `
-              : "w-full p-2 bg-[#111827] rounded-lg cursor-pointer"
-          }
+          className={fieldClass}
           value={form.accountId}
           onChange={(e) => setForm({ ...form, accountId: e.target.value })}
         >
-          <option value="">Selecionar conta</option>
+          <option className={optionClass} value="">Selecionar conta</option>
 
           {accounts.map((a) => (
-            <option key={a.id} value={a.id}>
+            <option className={optionClass} key={a.id} value={a.id}>
               {a.nome}
             </option>
           ))}
@@ -325,16 +304,22 @@ export default function RightSidebarTransactions({
         className={
           isMobile
             ? `
-      w-full
-      h-12
-      rounded-2xl
-      bg-emerald-400
-      text-black
-      font-medium
-      active:scale-[0.98]
-      transition-all
-    `
-            : "w-full bg-emerald-400 text-black p-2 rounded-lg"
+        w-full h-12 rounded-2xl
+        bg-emerald-400
+        text-black
+        font-medium
+        shadow-[0_14px_40px_rgba(16,185,129,0.22)]
+        active:scale-[0.98]
+        transition-all
+      `
+            : `
+        w-full h-12 rounded-2xl
+        bg-emerald-400
+        text-black
+        font-medium
+        shadow-[0_14px_40px_rgba(16,185,129,0.22)]
+        transition-all
+      `
         }
       >
         {editingTransaction ? "Salvar" : "Adicionar"}
@@ -353,15 +338,23 @@ export default function RightSidebarTransactions({
           className={
             isMobile
               ? `
-        w-full
-        h-12
-        rounded-2xl
-        bg-white/10
-        text-white
-        active:scale-[0.98]
-        transition-all
-      `
-              : "w-full bg-gray-700 text-white p-2 rounded-lg"
+          w-full h-12 rounded-2xl border
+          ${
+            themeName === "light"
+              ? "bg-slate-200/70 border-slate-200 text-slate-700"
+              : "bg-white/10 border-white/[0.06] text-white"
+          }
+          active:scale-[0.98]
+          transition-all
+        `
+              : `
+          w-full h-12 rounded-2xl border
+          ${
+            themeName === "light"
+              ? "bg-slate-200/70 border-slate-200 text-slate-700"
+              : "bg-white/10 border-white/[0.06] text-white"
+          }
+        `
           }
         >
           Cancelar

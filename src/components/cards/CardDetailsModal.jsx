@@ -22,6 +22,7 @@ export default function CardDetailsModal(props) {
     selected,
     setSelected,
     transactions,
+    budgetItems = [],
     formatCurrency,
     getTransacoes,
     getGasto,
@@ -57,14 +58,49 @@ export default function CardDetailsModal(props) {
         setSelected(null);
         setInvoiceDate(null);
       }}
-      className="p-5 sm:p-6"
+      className="px-5 sm:px-6 pt-8 lg:pt-6 pb-32 lg:pb-6 flex flex-col gap-4"
       style={{
         background: `linear-gradient(135deg, ${
           getBank(selected.banco).cor
         }, #0b0f1a)`,
       }}
     >
-      <h2 className="text-white text-xl font-semibold">{selected.nome}</h2>
+      <div className="relative shrink-0 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.05] backdrop-blur-xl p-4">
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
+
+        <div className="relative z-10 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/50">
+              {getBank(selected.banco).nome}
+            </p>
+
+            <h2 className="text-2xl font-semibold text-white mt-2">
+              {selected.nome}
+            </h2>
+
+            <p className="text-sm text-white/60 mt-1 capitalize">
+              {selected.tipo}
+            </p>
+          </div>
+
+          <img
+            src={getBank(selected.banco).logo}
+            className="w-12 h-12 object-contain opacity-90"
+          />
+        </div>
+
+        <div className="relative z-10 mt-4 flex items-center gap-2 flex-wrap">
+          <div className="px-3 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/20 text-emerald-300 text-xs">
+            Ativo
+          </div>
+
+          {config.temFatura && (
+            <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/70 text-xs">
+              Possui fatura
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* RESUMO FINANCEIRO */}
       {config.mostrarResumoFinanceiro &&
@@ -76,8 +112,6 @@ export default function CardDetailsModal(props) {
             getSaldoConta: () => 0,
           });
 
-          if (!config.mostrarResumoFinanceiro) return null;
-
           let label1 = "";
           let valor1 = 0;
 
@@ -87,7 +121,6 @@ export default function CardDetailsModal(props) {
           let label3 = "";
           let valor3 = 0;
 
-          // CRÉDITO / MÚLTIPLO
           if (config.temFatura) {
             label1 = "Limite";
             valor1 = finance.limite;
@@ -99,7 +132,6 @@ export default function CardDetailsModal(props) {
             valor3 = finance.disponivel;
           }
 
-          // VALE
           if (selected.tipo === "vale") {
             label1 = "Saldo inicial";
             valor1 = finance.saldoInicial;
@@ -110,33 +142,76 @@ export default function CardDetailsModal(props) {
             label3 = "Restante";
             valor3 = finance.disponivel;
           }
+
+          const base = Number(valor1 || 0);
+          const usado = Number(valor2 || 0);
+          const percent = base > 0 ? Math.min((usado / base) * 100, 100) : 0;
+
           return (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-xs text-gray-300">{label1}</p>
-                <p className="text-white font-semibold">
-                  {formatCurrency(valor1)}
-                </p>
+            <div className="relative shrink-0 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.055] backdrop-blur-xl p-5">
+              <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-emerald-400/10 blur-3xl" />
+
+              <div className="relative z-10 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">
+                    Resumo financeiro
+                  </p>
+
+                  <h3 className="text-2xl font-semibold text-white mt-2">
+                    {formatCurrency(valor3)}
+                  </h3>
+
+                  <p className="text-sm text-white/55 mt-1">{label3}</p>
+                </div>
+
+                <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/70 text-xs">
+                  {Math.round(percent)}% usado
+                </div>
               </div>
 
-              <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-xs text-gray-300">{label2}</p>
-                <p className="text-red-400 font-semibold">
-                  {formatCurrency(valor2)}
-                </p>
+              <div className="relative z-10 mt-5">
+                <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`
+                h-2 rounded-full
+                ${
+                  percent > 80
+                    ? "bg-red-400"
+                    : percent > 50
+                      ? "bg-yellow-400"
+                      : "bg-emerald-400"
+                }
+              `}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+
+                <div className="flex justify-between mt-2 text-[11px] text-white/45">
+                  <span>{formatCurrency(valor2)} usado</span>
+                  <span>{formatCurrency(valor1)} total</span>
+                </div>
               </div>
 
-              <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-xs text-gray-300">{label3}</p>
-                <p className="text-emerald-400 font-semibold">
-                  {formatCurrency(valor3)}
-                </p>
+              <div className="relative z-10 grid grid-cols-2 gap-3 mt-5">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+                  <p className="text-[11px] text-white/45">{label1}</p>
+                  <p className="text-sm font-semibold text-white mt-1">
+                    {formatCurrency(valor1)}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+                  <p className="text-[11px] text-white/45">{label2}</p>
+                  <p className="text-sm font-semibold text-red-300 mt-1">
+                    {formatCurrency(valor2)}
+                  </p>
+                </div>
               </div>
             </div>
           );
         })()}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 shrink-0">
         {/* HEADER + AÇÕES */}
         <div className="flex items-center justify-between mt-5">
           <h3 className="text-white font-medium">Detalhes do cartão</h3>
@@ -168,49 +243,57 @@ export default function CardDetailsModal(props) {
         />
 
         {/* RESUMO */}
-        {tab === "resumo" && (
-          <CardSummary
-            selected={selected}
-            transactions={transactions}
-            formatCurrency={formatCurrency}
-            getCurrentInvoiceDate={getCurrentInvoiceDate}
-            getInvoicePeriod={getInvoicePeriod}
-            generateInvoice={generateInvoice}
-          />
-        )}
-
-        {/* TRANSAÇÕES */}
         <AnimatePresence mode="wait">
-          {tab === "transacoes" && (
-            <CardTransactions
-              selected={selected}
-              getTransacoes={getTransacoes}
-              formatCurrency={formatCurrency}
-              listItem={listItem}
-            />
-          )}
-        </AnimatePresence>
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            {tab === "resumo" && (
+              <CardSummary
+                selected={selected}
+                transactions={transactions}
+                budgetItems={budgetItems}
+                formatCurrency={formatCurrency}
+                getCurrentInvoiceDate={getCurrentInvoiceDate}
+                getInvoicePeriod={getInvoicePeriod}
+                generateInvoice={generateInvoice}
+              />
+            )}
 
-        {/* FATURA */}
-        {tab === "fatura" && temFatura && (
-          <CardInvoice
-            selected={selected}
-            transactions={transactions}
-            formatCurrency={formatCurrency}
-            getInvoicePeriod={getInvoicePeriod}
-            getCurrentInvoiceDate={getCurrentInvoiceDate}
-            generateInvoice={generateInvoice}
-            groupByDate={groupByDate}
-            formatDateLabel={formatDateLabel}
-            invoiceDate={invoiceDate}
-            setInvoiceDate={setInvoiceDate}
-            direction={direction}
-            setDirection={setDirection}
-            slideHorizontal={slideHorizontal}
-            groupFade={groupFade}
-            staggerContainer={staggerContainer}
-          />
-        )}
+            {tab === "transacoes" && (
+              <CardTransactions
+                selected={selected}
+                getTransacoes={getTransacoes}
+                formatCurrency={formatCurrency}
+                listItem={listItem}
+              />
+            )}
+
+            {tab === "fatura" && temFatura && (
+              <CardInvoice
+                selected={selected}
+                transactions={transactions}
+                budgetItems={budgetItems}
+                formatCurrency={formatCurrency}
+                getInvoicePeriod={getInvoicePeriod}
+                getCurrentInvoiceDate={getCurrentInvoiceDate}
+                generateInvoice={generateInvoice}
+                groupByDate={groupByDate}
+                formatDateLabel={formatDateLabel}
+                invoiceDate={invoiceDate}
+                setInvoiceDate={setInvoiceDate}
+                direction={direction}
+                setDirection={setDirection}
+                slideHorizontal={slideHorizontal}
+                groupFade={groupFade}
+                staggerContainer={staggerContainer}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </BottomSheet>
   );

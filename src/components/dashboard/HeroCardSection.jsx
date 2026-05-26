@@ -1,6 +1,7 @@
 import { getBank } from "../../data/banks";
 import Card3D from "../cards/Card3D";
 import { motion } from "framer-motion";
+import { useTheme } from "../../theme/useTheme";
 
 export default function HeroCardSection({
   featuredCard,
@@ -8,6 +9,8 @@ export default function HeroCardSection({
   transactions,
   formatCurrency,
 }) {
+  const { theme, themeName } = useTheme();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -17,31 +20,44 @@ export default function HeroCardSection({
         duration: 0.35,
         ease: "easeOut",
       }}
-      className="
-      bg-white/5
-      border border-white/10
+      className={`
+      ${theme.surface}
+      border ${theme.border}
       rounded-[28px]
       p-3 sm:p-6
       overflow-hidden
-      shadow-[0_35px_120px_rgba(0,0,0,0.38)]
+      ${
+        themeName === "light"
+          ? "shadow-[0_18px_55px_rgba(15,23,42,0.10)]"
+          : "shadow-[0_35px_120px_rgba(0,0,0,0.38)]"
+      }
       transition-shadow duration-300
       min-w-0
       h-auto
       xl:h-full
       xl:max-h-[340px]
-    "
+    `}
     >
       <div className="flex flex-col xl:flex-row xl:h-full gap-4 sm:gap-5 items-center">
         <div className="w-full max-w-[360px] lg:max-w-[340px] lg:w-[340px] flex-shrink-0">
           {!featuredCard ? (
             <div className="min-h-[300px] lg:h-full flex flex-col items-center justify-center text-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
+              <div
+                className={`
+                w-14 h-14 rounded-2xl
+                ${theme.surface}
+                border ${theme.border}
+                flex items-center justify-center mb-4
+              `}
+              >
                 <span className="text-2xl">💳</span>
               </div>
 
-              <p className="text-white font-medium">Nenhum cartão utilizado</p>
+              <p className={`${theme.textPrimary} font-medium`}>
+                Nenhum cartão utilizado
+              </p>
 
-              <p className="text-xs text-gray-500 mt-1 max-w-[220px]">
+              <p className={`text-xs ${theme.textMuted} mt-1 max-w-[220px]`}>
                 Seus cartões mais usados aparecerão aqui automaticamente.
               </p>
             </div>
@@ -103,12 +119,16 @@ export default function HeroCardSection({
                 <div className="relative group">
                   <div
                     className={`
-                      absolute inset-[-8px] rounded-2xl blur-xl 
-                      opacity-35 group-hover:opacity-55
-                      scale-100 group-hover:scale-110
-                      transition-all duration-300 ease-out
-                      ${glowColor}
-                    `}
+                    absolute inset-[-8px] rounded-2xl blur-xl
+                    ${
+                     themeName === "light"
+                       ? "opacity-20 group-hover:opacity-30"
+                       : "opacity-35 group-hover:opacity-55"
+                    }
+                    scale-100 group-hover:scale-110
+                    transition-all duration-300 ease-out
+                    ${glowColor}
+                  `}
                   />
 
                   <div className="relative z-10 transition-transform duration-300 group-hover:scale-[1.02]">
@@ -129,7 +149,7 @@ export default function HeroCardSection({
         </div>
 
         <div className="flex-1 min-w-0 flex flex-col justify-center w-full self-stretch">
-          <p className="text-[15px] font-medium text-gray-300">
+          <p className={`text-[15px] font-medium ${theme.textSecondary}`}>
             Cartão principal
           </p>
 
@@ -139,14 +159,22 @@ export default function HeroCardSection({
                 {featuredCard?.nome || "Sem cartão"}
               </h2>
 
-              <p className="text-xs text-gray-400 mt-1 capitalize">
+              <p className={`text-xs ${theme.textMuted} mt-1 capitalize`}>
                 {featuredCard?.tipo === "multiplo"
                   ? "Crédito + Débito"
                   : featuredCard?.tipo || "—"}
               </p>
             </div>
 
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-400/10 text-emerald-300 border border-emerald-400/10 whitespace-nowrap">
+            <span
+              className={`
+              text-[10px] px-2.5 py-1 rounded-full
+              ${theme.accentSoft}
+              ${theme.accentText}
+              border ${theme.accentBorder}
+              whitespace-nowrap
+            `}
+            >
               Principal
             </span>
           </div>
@@ -154,8 +182,16 @@ export default function HeroCardSection({
           {featuredCardStats && (
             <div className="mt-4 sm:mt-5 space-y-2.5 sm:space-y-3">
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <div className="bg-emerald-400/[0.06] border border-emerald-400/[0.08] rounded-2xl p-2.5 sm:p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-emerald-200/70">
+                <div
+                  className={`
+                  ${theme.accentSoft}
+                  border ${theme.accentBorder}
+                  rounded-2xl p-2.5 sm:p-3
+                `}
+                >
+                  <p
+                    className={`text-[11px] uppercase tracking-[0.08em] ${theme.accentText}`}
+                  >
                     Disponível
                   </p>
 
@@ -164,8 +200,16 @@ export default function HeroCardSection({
                   </p>
                 </div>
 
-                <div className="bg-white/[0.045] border border-white/[0.06] rounded-2xl p-2.5 sm:p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400">
+                <div
+                  className={`
+                  ${theme.surface}
+                  border ${theme.border}
+                  rounded-2xl p-2.5 sm:p-3
+                `}
+                >
+                  <p
+                    className={`text-[11px] uppercase tracking-[0.08em] ${theme.textMuted}`}
+                  >
                     Limite
                   </p>
                   <p className="text-lg font-semibold mt-1 leading-none">
@@ -174,21 +218,38 @@ export default function HeroCardSection({
                 </div>
               </div>
 
-              <div className="bg-white/[0.045] border border-white/[0.06] rounded-2xl p-2.5 sm:p-3 sm:mt-1">
+              <div
+                className={`
+                ${theme.surface}
+                border ${theme.border}
+                rounded-2xl p-2.5 sm:p-3 sm:mt-1
+              `}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400">
+                    <p
+                      className={`text-[11px] uppercase tracking-[0.08em] ${theme.textMuted}`}
+                    >
                       Último uso
                     </p>
 
-                    <p className="text-sm font-medium mt-2 truncate text-white">
+                    <p
+                      className={`text-sm font-medium mt-2 truncate ${theme.textPrimary}`}
+                    >
                       {featuredCardStats.lastUse?.descricao ||
                         "Sem uso recente"}
                     </p>
                   </div>
 
                   {featuredCardStats.lastUse?.data && (
-                    <span className="text-[10px] px-2 py-1 rounded-full bg-white/[0.05] text-gray-400 whitespace-nowrap">
+                    <span
+                      className={`
+                      text-[10px] px-2 py-1 rounded-full
+                      bg-white/[0.05]
+                      ${theme.textMuted}
+                      whitespace-nowrap
+                    `}
+                    >
                       {new Date(
                         featuredCardStats.lastUse.data,
                       ).toLocaleDateString("pt-BR", {
