@@ -115,9 +115,16 @@ export default function Schedule() {
       setPaymentError("");
       setPendingIds((prev) => [...prev, item.paymentId]);
       try {
-        await paymentController.toggle({ item, transactions, add, removePayment });
+        await paymentController.toggle({
+          item,
+          transactions,
+          add,
+          removePayment,
+        });
       } catch {
-        setPaymentError("Não foi possível alterar a realização. Tente novamente.");
+        setPaymentError(
+          "Não foi possível alterar a realização. Tente novamente.",
+        );
       } finally {
         setPendingIds((prev) => prev.filter((id) => id !== item.paymentId));
       }
@@ -185,7 +192,8 @@ export default function Schedule() {
             <span className={isIncome ? theme.success : theme.danger}>
               {isIncome ? "Receita" : "Despesa"}
             </span>
-            {" · "}{item.origem === "orcamento" ? "Orçamento" : "Fatura"}
+            {" · "}
+            {item.origem === "orcamento" ? "Orçamento" : "Fatura"}
           </p>
 
           <p
@@ -198,7 +206,9 @@ export default function Schedule() {
         </div>
 
         <div className="relative z-10 flex flex-col items-end gap-3 shrink-0">
-          <p className={`font-semibold ${isIncome ? theme.success : theme.danger}`}>
+          <p
+            className={`font-semibold ${isIncome ? theme.success : theme.danger}`}
+          >
             {isIncome ? "+" : "−"} {formatCurrency(item.valor)}
           </p>
 
@@ -381,7 +391,11 @@ export default function Schedule() {
             }
           />
 
-          {paymentError && <p role="alert" className="text-sm text-red-500">{paymentError}</p>}
+          {paymentError && (
+            <p role="alert" className="text-sm text-red-500">
+              {paymentError}
+            </p>
+          )}
 
           <GlassTabs
             className="w-full justify-between"
@@ -403,17 +417,23 @@ export default function Schedule() {
                 key={key}
                 className={`${theme.surface} border ${theme.border} rounded-2xl p-2.5 lg:p-3 backdrop-blur-xl min-w-0`}
               >
-                <p className={`text-xs ${theme.textSecondary}`}>{label}</p>
-                <div className="mt-2 flex flex-col gap-2 text-xs">
-                  <div>
+                <p className="text-xs font-semibold text-white text-center">
+                  {label}
+                </p>
+                <div className="mt-4 grid grid-cols-2 text-xs text-center">
+                  <div className="min-w-0 pr-2">
                     <p className={theme.textSecondary}>Receitas</p>
-                    <p className={`font-medium mt-0.5 break-words ${theme.success}`}>
+                    <p
+                      className={`font-medium mt-0.5 break-words ${theme.success}`}
+                    >
                       + {formatCurrency(summary[key].receita)}
                     </p>
                   </div>
-                  <div>
+                  <div className={`min-w-0 pl-2 border-l ${theme.border}`}>
                     <p className={theme.textSecondary}>Despesas</p>
-                    <p className={`font-medium mt-0.5 break-words ${theme.danger}`}>
+                    <p
+                      className={`font-medium mt-0.5 break-words ${theme.danger}`}
+                    >
                       − {formatCurrency(summary[key].despesa)}
                     </p>
                   </div>
@@ -430,18 +450,20 @@ export default function Schedule() {
               backdrop-blur-xl
             `}
             >
-              <p className={`text-xs ${theme.textSecondary}`}>
+              <p className="text-xs font-semibold text-white text-center">
                 Saldo acumulado
               </p>
 
               <p
-                className={`font-medium mt-1 ${
+                className={`font-medium mt-1 text-center ${
                   saldoProjetado < 0 ? theme.danger : theme.success
                 }`}
               >
                 {formatCurrency(saldoProjetado)}
               </p>
-              <p className={`text-[11px] mt-2 ${theme.textSecondary}`}>
+              <p
+                className={`text-[11px] mt-2 text-center ${theme.textSecondary}`}
+              >
                 Saldo atual + receitas pendentes − despesas pendentes
               </p>
             </div>
