@@ -82,8 +82,9 @@ export function getPaymentSchedule({
 
     const date = new Date(year, months[month], card.vencimento || 10);
 
-    const paymentId = `fatura-${card.id}-${month}-${year}`;
-    const isPaid = paidIds.includes(paymentId);
+    const paymentId = `invoice-${card.id}-${monthNumber}-${year}`;
+
+    const isPaid = transactions.some((t) => t.invoicePaymentId === paymentId);
 
     schedule.push({
       paymentId,

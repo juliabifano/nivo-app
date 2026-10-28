@@ -100,36 +100,40 @@ export default function RightSidebarTransactions({
 `;
 
   const desktopInputClass = `
-  w-full p-2 rounded-lg outline-none cursor-pointer
-  ${theme.surface}
-  border ${theme.border}
-  ${theme.textPrimary}
+  w-full p-2 rounded-lg outline-none cursor-pointer border
+  ${
+    themeName === "light"
+      ? "bg-white border-slate-200 text-slate-900"
+      : "bg-[#0B1220] border-white/[0.08] text-white"
+  }
 `;
 
   const fieldClass = isMobile ? inputClass : desktopInputClass;
 
   const optionClass =
-  themeName === "light"
-    ? "bg-white text-slate-900"
-    : "bg-[#111827] text-white";
+    themeName === "light"
+      ? "bg-white text-slate-900"
+      : "bg-[#111827] text-white";
 
   return (
     <div
       className={
         isMobile
           ? `
-    w-full p-5 space-y-4
-    ${theme.textPrimary}
-    ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
-  `
+          w-full p-5 space-y-4
+          ${theme.textPrimary}
+          ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
+        `
           : `
-        fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
-        ${theme.surface}
-        border ${theme.border}
-        ${theme.textPrimary}
-        p-5 rounded-2xl backdrop-blur-md
-        overflow-y-auto space-y-3
-      `
+          fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
+          ${themeName === "light" ? "bg-white" : "bg-[#111827]"}
+          border ${theme.border}
+          ${theme.textPrimary}
+          p-5 rounded-2xl
+          overflow-y-auto space-y-3
+          shadow-[0_12px_40px_rgba(0,0,0,0.28)]
+          z-40
+        `
       }
     >
       <h2 className="text-lg font-semibold mb-4">
@@ -219,11 +223,21 @@ export default function RightSidebarTransactions({
           });
         }}
       >
-        <option className={optionClass} value="pix">Pix</option>
-        <option className={optionClass} value="debito">Débito</option>
-        <option className={optionClass} value="credito">Crédito</option>
-        <option className={optionClass} value="dinheiro">Dinheiro</option>
-        <option className={optionClass} value="vale">Vale</option>
+        <option className={optionClass} value="pix">
+          Pix
+        </option>
+        <option className={optionClass} value="debito">
+          Débito
+        </option>
+        <option className={optionClass} value="credito">
+          Crédito
+        </option>
+        <option className={optionClass} value="dinheiro">
+          Dinheiro
+        </option>
+        <option className={optionClass} value="vale">
+          Vale
+        </option>
       </select>
 
       {["credito", "debito", "vale"].includes(form.formaPagamento) && (
@@ -246,7 +260,9 @@ export default function RightSidebarTransactions({
             });
           }}
         >
-          <option className={optionClass} value="">Selecionar cartão</option>
+          <option className={optionClass} value="">
+            Selecionar cartão
+          </option>
 
           {cards
             .filter((c) => {
@@ -288,7 +304,9 @@ export default function RightSidebarTransactions({
           value={form.accountId}
           onChange={(e) => setForm({ ...form, accountId: e.target.value })}
         >
-          <option className={optionClass} value="">Selecionar conta</option>
+          <option className={optionClass} value="">
+            Selecionar conta
+          </option>
 
           {accounts.map((a) => (
             <option className={optionClass} key={a.id} value={a.id}>
@@ -317,8 +335,8 @@ export default function RightSidebarTransactions({
         bg-emerald-400
         text-black
         font-medium
-        shadow-[0_14px_40px_rgba(16,185,129,0.22)]
-        transition-all
+        shadow-none
+        transition-all cursor-pointer
       `
         }
       >
@@ -342,7 +360,7 @@ export default function RightSidebarTransactions({
           ${
             themeName === "light"
               ? "bg-slate-200/70 border-slate-200 text-slate-700"
-              : "bg-white/10 border-white/[0.06] text-white"
+              : "bg-white/10 border-white/[0.06] text-white cursor-pointer"
           }
           active:scale-[0.98]
           transition-all
@@ -352,7 +370,7 @@ export default function RightSidebarTransactions({
           ${
             themeName === "light"
               ? "bg-slate-200/70 border-slate-200 text-slate-700"
-              : "bg-white/10 border-white/[0.06] text-white"
+              : "bg-white/10 border-white/[0.06] text-white cursor-pointer"
           }
         `
           }

@@ -1,28 +1,82 @@
 import { useState, useEffect } from "react";
 import { createCategory } from "../core/categories/categoryFactory";
+import {
+  getCategories,
+  createCategory as createCategoryRepo,
+  deleteCategory,
+} from "../repositories/categoryRepository";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export function useCategoryStore() {
+  const { user } = useAuth();
+
   const [categories, setCategories] = useState([]);
 
+  // -----------------------------
+  // LOAD
+  // -----------------------------
   useEffect(() => {
-    const saved = localStorage.getItem("categories");
-    if (saved) {
-      setCategories(JSON.parse(saved));
+    if (!user) return;
+
+    async function load() {
+      const data = await getCategories(user.id);
+
+      setCategories(data || []);
     }
-  }, []);
+
+    load();
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem("categories", JSON.stringify(categories));
-  }, [categories]);
+    if (!user) return;
 
-  function add(raw) {
+    const channel = supabase
+      .channel("categories-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "categories",
+        },
+        async () => {
+          const data = await getCategories(user.id);
+          setCategories(data || []);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+  // -----------------------------
+  // ADD
+  // -----------------------------
+  async function add(raw) {
+    if (!user) return;
+
     const nova = createCategory(raw);
 
-    setCategories((prev) => [...prev, nova]);
+    const saved = await createCategoryRepo({
+      ...nova,
+      user_id: user.id,
+    });
 
-    return nova;
+    if (!saved) return null;
+
+    setCategories((prev) => [saved, ...prev]);
+
+    return saved;
   }
-  function remove(id) {
+
+  // -----------------------------
+  // REMOVE
+  // -----------------------------
+  async function remove(id) {
+    await deleteCategory(id);
+
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
 

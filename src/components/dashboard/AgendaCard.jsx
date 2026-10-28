@@ -9,6 +9,13 @@ export default function AgendaCard({
 }) {
   const { theme, themeName } = useTheme();
 
+ const alertMessage =
+    overdueCount > 0
+      ? `${overdueCount} pagamento(s) atrasado(s)`
+      : todayCount > 0
+        ? `${todayCount} pagamento(s) vencem hoje`
+        : "Tudo em dia";
+
   return (
     <Card hover="subtle" className="p-4 sm:p-5 h-full flex flex-col">
       <div className="flex items-start justify-between gap-3 py-3">
@@ -21,20 +28,23 @@ export default function AgendaCard({
             Próximos pagamentos
           </p>
         </div>
+      </div>
 
-        <div className="flex gap-2 text-xs">
-          {todayCount > 0 && (
-            <span className="px-2 py-1 rounded-full bg-yellow-400/10 text-yellow-500">
-              {todayCount} hoje
-            </span>
-          )}
-
-          {overdueCount > 0 && (
-            <span className="px-2 py-1 rounded-full bg-red-400/10 text-red-400">
-              {overdueCount} atrasado
-            </span>
-          )}
-        </div>
+      <div
+        className={`
+        mb-3 rounded-2xl border px-3 py-2 text-xs
+        ${
+          overdueCount > 0
+            ? "bg-red-400/10 border-red-400/20 text-red-400"
+            : todayCount > 0
+              ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-500"
+              : themeName === "light"
+                ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                : "bg-emerald-400/10 border-emerald-400/20 text-emerald-300"
+        }
+      `}
+      >
+        {alertMessage}
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-3 no-scrollbar">

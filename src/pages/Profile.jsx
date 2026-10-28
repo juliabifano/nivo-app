@@ -1,9 +1,22 @@
 import Card from "../components/ui/Card";
 import SectionHeader from "../components/ui/SectionHeader";
 import { useTheme } from "../theme/useTheme";
+import { useAuth } from "../contexts/AuthContext";
+import { useAccounts } from "../contexts/AccountContext";
+import { useCards } from "../contexts/CardContext";
+import { useTransactions } from "../contexts/TransactionContext";
+import { useCategories } from "../contexts/CategoryContext";
 
 export default function Profile() {
   const { theme, themeName } = useTheme();
+  const { user, logout } = useAuth();
+  const { accounts = [] } = useAccounts();
+  const { cards = [] } = useCards();
+  const { transactions = [] } = useTransactions();
+  const { categories = [] } = useCategories();
+
+  const userName = user?.user_metadata?.name || "Usuário";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <div
@@ -58,7 +71,7 @@ export default function Profile() {
                 "
               >
                 <span className="relative z-10 transition-opacity duration-300 group-hover:opacity-20">
-                  J
+                  {userInitial}
                 </span>
 
                 <input type="file" accept="image/*" className="hidden" />
@@ -95,7 +108,7 @@ export default function Profile() {
                   Conta principal
                 </p>
 
-                <h1 className="text-2xl font-semibold mt-1">Júlia Bifano</h1>
+                <h1 className="text-2xl font-semibold mt-1">{userName}</h1>
 
                 <p className={`text-sm mt-2 ${theme.textSecondary}`}>
                   Organizando suas finanças no nível certo.
@@ -128,19 +141,19 @@ export default function Profile() {
             {[
               {
                 label: "Contas",
-                value: "4",
+                value: accounts.length,
               },
               {
                 label: "Cartões",
-                value: "3",
+                value: cards.length,
               },
               {
                 label: "Transações",
-                value: "128",
+                value: transactions.length,
               },
               {
                 label: "Categorias",
-                value: "12",
+                value: categories.length,
               },
             ].map((item) => (
               <Card
@@ -215,6 +228,33 @@ export default function Profile() {
               ))}
             </div>
           </Card>
+          <div className="space-y-6">
+            <div>
+              <p className="text-sm text-white/50">Nome</p>
+              <h2 className="text-2xl font-semibold">
+                {user?.user_metadata?.name || "Usuário"}
+              </h2>
+            </div>
+
+            <div>
+              <p className="text-sm text-white/50">Email</p>
+              <p className="text-lg">{user?.email}</p>
+            </div>
+
+            <button
+              onClick={logout}
+              className="
+      h-12 px-6 rounded-2xl
+      bg-red-500/15
+      border border-red-500/20
+      text-red-300
+      hover:bg-red-500/20
+      transition-all
+    "
+            >
+              Sair da conta
+            </button>
+          </div>
         </div>
       </div>
     </div>

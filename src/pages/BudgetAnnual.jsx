@@ -552,53 +552,52 @@ export default function BudgetAnnual() {
             </div>
           </div>
         </div>
-
-        <div className="hidden lg:block">
-          <RightSidebar
-            form={form}
-            setForm={setForm}
-            handleAdd={handleAdd}
-            months={months}
-            toggleMonth={toggleMonth}
-            editingId={editingId}
-            formatCurrency={formatCurrency}
-          />
-        </div>
-
-        <FloatingActionButton
-          open={showMobileForm}
-          onClick={() => {
-            if (showMobileForm) {
-              setShowMobileForm(false);
-              setEditingId(null);
-              return;
-            }
-
-            setEditingId(null);
-            setShowMobileForm(true);
-          }}
+      </div>
+      <div className="hidden lg:block">
+        <RightSidebar
+          form={form}
+          setForm={setForm}
+          handleAdd={handleAdd}
+          months={months}
+          toggleMonth={toggleMonth}
+          editingId={editingId}
+          formatCurrency={formatCurrency}
         />
+      </div>
 
-        <BottomSheet
-          open={showMobileForm}
-          onClose={() => {
+      <FloatingActionButton
+        open={showMobileForm}
+        onClick={() => {
+          if (showMobileForm) {
             setShowMobileForm(false);
             setEditingId(null);
-          }}
-        >
-          <RightSidebar
-            form={form}
-            setForm={setForm}
-            handleAdd={handleAdd}
-            months={months}
-            toggleMonth={toggleMonth}
-            editingId={editingId}
-            formatCurrency={formatCurrency}
-            isMobile
-            setShowMobileForm={setShowMobileForm}
-          />
-        </BottomSheet>
-      </div>
+            return;
+          }
+
+          setEditingId(null);
+          setShowMobileForm(true);
+        }}
+      />
+
+      <BottomSheet
+        open={showMobileForm}
+        onClose={() => {
+          setShowMobileForm(false);
+          setEditingId(null);
+        }}
+      >
+        <RightSidebar
+          form={form}
+          setForm={setForm}
+          handleAdd={handleAdd}
+          months={months}
+          toggleMonth={toggleMonth}
+          editingId={editingId}
+          formatCurrency={formatCurrency}
+          isMobile
+          setShowMobileForm={setShowMobileForm}
+        />
+      </BottomSheet>
     </div>
   );
 }

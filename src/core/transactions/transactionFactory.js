@@ -1,6 +1,6 @@
 export function createTransaction(raw) {
   return {
-    id: crypto.randomUUID(),
+    id: raw.id || crypto.randomUUID(),
 
     descricao: raw.descricao?.trim() || "",
     valor: Number(raw.valor) || 0,
@@ -18,6 +18,12 @@ export function createTransaction(raw) {
     contaId: raw.contaId ?? null,
     accountId: raw.accountId ?? null,
 
-    createdAt: new Date().toISOString(),
+    invoicePaymentId: raw.invoicePaymentId ?? null,
+    cardInvoiceId: raw.cardInvoiceId ?? null,
+    schedulePaymentId: raw.schedulePaymentId ?? null,
+    origem: raw.origem ?? null,
+    isPreview: raw.isPreview ?? false,
+
+    createdAt: raw.createdAt || new Date().toISOString(),
   };
 }

@@ -24,20 +24,22 @@ export default function RightSidebar({
   const meses = form.meses?.length || 0;
 
   const inputClass = `
-    w-full h-12 px-4 rounded-2xl outline-none border transition-all
+    w-full h-12 px-4 rounded-2xl outline-none cursor-pointer border
     ${
       themeName === "light"
-        ? "bg-white/80 border-slate-200/80 text-slate-900 placeholder:text-slate-400 focus:border-emerald-400/40"
-        : "bg-[#111827] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-emerald-400/40"
+        ? "bg-white/80 border-slate-200/80 text-slate-900 placeholder:text-slate-400"
+        : "bg-[#111827] border-white/[0.06] text-white placeholder:text-gray-500"
     }
   `;
 
   const desktopInputClass = `
-    w-full p-2 rounded-lg outline-none border transition-all
-    ${theme.surface}
-    border ${theme.border}
-    ${theme.textPrimary}
-  `;
+  w-full p-2 rounded-lg outline-none cursor-pointer border
+  ${
+    themeName === "light"
+      ? "bg-white border-slate-200 text-slate-900"
+      : "bg-[#0B1220] border-white/[0.08] text-white"
+  }
+`;
 
   const fieldClass = isMobile ? inputClass : desktopInputClass;
 
@@ -51,17 +53,19 @@ export default function RightSidebar({
       className={
         isMobile
           ? `
-            w-full p-5 space-y-4 pb-32
+            w-full p-5 space-y-4
             ${theme.textPrimary}
             ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
           `
           : `
-            fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40
-            ${theme.surface}
+            fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
+            ${themeName === "light" ? "bg-white" : "bg-[#111827]"}
             border ${theme.border}
             ${theme.textPrimary}
-            p-5 space-y-3 rounded-2xl shadow-xl backdrop-blur-md
-            overflow-y-auto no-scrollbar
+            p-5 rounded-2xl
+            overflow-y-auto space-y-3
+            shadow-[0_12px_40px_rgba(0,0,0,0.28)]
+            z-40
           `
       }
     >
@@ -109,8 +113,8 @@ export default function RightSidebar({
               ${
                 form.tipo === t
                   ? t === "receita"
-                    ? "bg-emerald-400 text-black"
-                    : "bg-red-400 text-white"
+                    ? "bg-emerald-400 text-black shadow-[0_10px_25px_rgba(16,185,129,0.18)]"
+                    : "bg-red-400 text-white shadow-[0_10px_25px_rgba(239,68,68,0.18)]"
                   : themeName === "light"
                     ? "text-slate-500 hover:bg-white/60"
                     : "text-gray-300 hover:bg-white/[0.04]"
@@ -144,12 +148,24 @@ export default function RightSidebar({
           });
         }}
       >
-        <option className={optionClass} value="pix">Pix</option>
-        <option className={optionClass} value="debito_conta">Débito em conta</option>
-        <option className={optionClass} value="debito_cartao">Débito no cartão</option>
-        <option className={optionClass} value="credito">Crédito</option>
-        <option className={optionClass} value="dinheiro">Dinheiro</option>
-        <option className={optionClass} value="vale">Vale</option>
+        <option className={optionClass} value="pix">
+          Pix
+        </option>
+        <option className={optionClass} value="debito_conta">
+          Débito em conta
+        </option>
+        <option className={optionClass} value="debito_cartao">
+          Débito no cartão
+        </option>
+        <option className={optionClass} value="credito">
+          Crédito
+        </option>
+        <option className={optionClass} value="dinheiro">
+          Dinheiro
+        </option>
+        <option className={optionClass} value="vale">
+          Vale
+        </option>
       </select>
 
       {["pix", "debito_conta", "dinheiro"].includes(form.formaPagamento) && (
@@ -158,7 +174,9 @@ export default function RightSidebar({
           value={form.accountId || ""}
           onChange={(e) => setForm({ ...form, accountId: e.target.value })}
         >
-          <option className={optionClass} value="">Selecionar conta</option>
+          <option className={optionClass} value="">
+            Selecionar conta
+          </option>
 
           {accounts.map((a) => (
             <option className={optionClass} key={a.id} value={a.id}>
@@ -189,7 +207,9 @@ export default function RightSidebar({
             });
           }}
         >
-          <option className={optionClass} value="">Selecionar cartão</option>
+          <option className={optionClass} value="">
+            Selecionar cartão
+          </option>
 
           {cards
             .filter((c) => {
@@ -208,7 +228,7 @@ export default function RightSidebar({
               return false;
             })
             .map((c) => (
-              <option className={optionClass}  key={c.id} value={c.id}>
+              <option className={optionClass} key={c.id} value={c.id}>
                 {c.nome}
               </option>
             ))}
@@ -258,14 +278,24 @@ export default function RightSidebar({
       <button
         type="button"
         onClick={handleAdd}
-        className="
-          w-full h-12 rounded-2xl
-          bg-emerald-400 text-black
-          font-medium
-          shadow-[0_14px_40px_rgba(16,185,129,0.22)]
-          active:scale-[0.98]
-          transition-all
-        "
+        className={
+          isMobile
+            ? `
+              w-full h-12 rounded-2xl
+              bg-emerald-400 text-black
+              font-medium
+              shadow-[0_14px_40px_rgba(16,185,129,0.22)]
+              active:scale-[0.98]
+              transition-all
+            `
+            : `
+              w-full h-12 rounded-2xl
+              bg-emerald-400 text-black
+              font-medium
+              transition-all cursor-pointer
+              shadow-none
+            `
+        }
       >
         {editingId ? "Atualizar" : "Adicionar"}
       </button>

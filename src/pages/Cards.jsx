@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import OnboardingProgress from "../components/onboarding/OnboardingProgress";
 import RightSidebarCards from "../components/RightSidebarCards";
 import CardDetailsModal from "../components/cards/CardDetailsModal";
 import CardItem from "../components/cards/CardItem";
@@ -11,6 +13,8 @@ import { useCards } from "../contexts/CardContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import { useTheme } from "../theme/useTheme";
+import { useAccounts } from "../contexts/AccountContext";
+
 import {
   generateInvoice,
   groupByDate,
@@ -19,9 +23,11 @@ import {
 
 export default function Cards() {
   const { cards, remove } = useCards();
-  const { transactions = [] } = useTransactions();
+  const { transactions = [], add } = useTransactions();
   const { items: budgetItems = [] } = useBudgetAnnual();
   const { theme, themeName } = useTheme();
+  const { accounts = [] } = useAccounts();
+  const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
   const [editandoCartao, setEditandoCartao] = useState(null);
@@ -31,6 +37,9 @@ export default function Cards() {
   const [direction, setDirection] = useState(0);
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [showPayInvoiceModal, setShowPayInvoiceModal] = useState(false);
+  const [invoiceToPay, setInvoiceToPay] = useState(null);
+  const [selectedPaymentAccount, setSelectedPaymentAccount] = useState("");
 
   useEffect(() => {
     if (cards.length > 0) {
@@ -95,7 +104,13 @@ export default function Cards() {
 
   const getTransacoes = (id) =>
     Array.isArray(allTransactions)
-      ? allTransactions.filter((t) => String(t.cartaoId) === String(id))
+      ? allTransactions.filter(
+          (t) =>
+            String(t.cartaoId) === String(id) &&
+            t.origem !== "pagamento_fatura" &&
+            t.formaPagamento !== "pagamento_fatura" &&
+            !t.invoicePaymentId,
+        )
       : [];
 
   const getGasto = (id) => {
@@ -162,6 +177,66 @@ export default function Cards() {
     setActiveCardIndex((prev) => Math.max(prev - 1, 0));
   };
 
+  function handlePayInvoice({ card, invoice, mes, ano }) {
+    setInvoiceToPay({
+      card,
+      invoice,
+      mes,
+      ano,
+    });
+
+    setSelectedPaymentAccount(card.accountId || "");
+
+    setShowPayInvoiceModal(true);
+  }
+
+  function confirmInvoicePayment() {
+    if (!invoiceToPay) return;
+
+    const { card, invoice, mes, ano } = invoiceToPay;
+
+    const invoicePaymentId = `invoice-${card.id}-${mes}-${ano}`;
+
+    const alreadyPaid = transactions.some(
+      (t) => t.invoicePaymentId === invoicePaymentId,
+    );
+
+    if (alreadyPaid) return;
+
+    add({
+      descricao: `Pagamento fatura ${card.nome}`,
+      valor: invoice.total,
+      tipo: "despesa",
+      data: new Date().toISOString().split("T")[0],
+      categoriaId: "",
+      formaPagamento: "pagamento_fatura",
+      accountId: selectedPaymentAccount,
+      cartaoId: "",
+      cardInvoiceId: card.id,
+      invoicePaymentId,
+      origem: "pagamento_fatura",
+
+      invoiceSnapshot: {
+        total: invoice.total,
+        transactions: invoice.transactions,
+        mes,
+        ano,
+        paidAt: new Date().toISOString(),
+      },
+    });
+
+    setShowPayInvoiceModal(false);
+    setInvoiceToPay(null);
+  }
+
+  const optionClass =
+    themeName === "light"
+      ? "bg-white text-slate-900"
+      : "bg-[#111827] text-white";
+
+  const onboardingActive =
+    localStorage.getItem("nivo-onboarding-active") === "true";
+
   return (
     <div
       className={`relative flex flex-col lg:flex-row h-full overflow-hidden ${theme.textPrimary}`}
@@ -194,6 +269,8 @@ export default function Cards() {
             />
           }
         />
+
+        <OnboardingProgress />
 
         <div
           className="
@@ -267,6 +344,7 @@ export default function Cards() {
                 />
               </div>
             ))}
+
             <div className="lg:hidden absolute left-1/2 -translate-x-1/2 bottom-24 flex items-center gap-2 z-40">
               <button
                 onClick={goPrevCard}
@@ -333,6 +411,38 @@ export default function Cards() {
             </div>
           </div>
         </div>
+
+        {onboardingActive && cards.length > 0 && (
+          <div className="mt-6 flex justify-center lg:justify-start">
+            <button
+              onClick={() => navigate("/transactions")}
+              className="
+                h-12 px-5 rounded-2xl
+                flex items-center gap-3
+                bg-emerald-400/8
+                border border-emerald-400/15
+                text-emerald-300
+                font-medium
+                hover:bg-emerald-400/12
+                hover:border-emerald-400/25
+                transition-all
+              "
+              >
+                <span
+                  className="
+                  w-6 h-6 rounded-full
+                  flex items-center justify-center
+                  text-xs font-semibold
+                  bg-emerald-400/15
+                  border border-emerald-400/20
+                "
+                >
+                  →
+                </span>
+              Continuar para Transações 
+            </button>
+          </div>
+        )}
       </div>
 
       {/* SIDEBAR */}
@@ -347,7 +457,7 @@ export default function Cards() {
       <CardDetailsModal
         selected={selected}
         setSelected={setSelected}
-        transactions={allTransactions}
+        transactions={transactions}
         budgetItems={budgetItems}
         formatCurrency={formatCurrency}
         getTransacoes={getTransacoes}
@@ -364,6 +474,7 @@ export default function Cards() {
         setInvoiceDate={setInvoiceDate}
         direction={direction}
         setDirection={setDirection}
+        onPayInvoice={handlePayInvoice}
       />
 
       {/* DELETE MODAL */}
@@ -372,6 +483,90 @@ export default function Cards() {
         setConfirmDelete={setConfirmDelete}
         onDelete={remove}
       />
+
+      <AnimatePresence>
+        {showPayInvoiceModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="
+        fixed inset-0 z-[120]
+        bg-black/60 backdrop-blur-sm
+        flex items-center justify-center
+        p-4
+      "
+            onClick={() => setShowPayInvoiceModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`
+          w-full max-w-sm rounded-[28px]
+          border p-5
+          ${theme.surface}
+          ${theme.border}
+          backdrop-blur-xl
+        `}
+            >
+              <h2 className="text-lg font-semibold">Pagar fatura</h2>
+
+              <p className={`text-sm mt-1 ${theme.textSecondary}`}>
+                Escolha a conta para pagamento.
+              </p>
+
+              <div className="mt-5">
+                <select
+                  value={selectedPaymentAccount}
+                  onChange={(e) => setSelectedPaymentAccount(e.target.value)}
+                  className={`
+              w-full h-12 px-4 rounded-2xl outline-none border 
+              ${theme.surface}
+              ${theme.border}
+              ${theme.textPrimary}
+            `}
+                >
+                  <option className={optionClass} value="">
+                    Selecionar conta
+                  </option>
+
+                  {accounts.map((acc) => (
+                    <option className={optionClass} key={acc.id} value={acc.id}>
+                      {acc.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowPayInvoiceModal(false)}
+                  className="
+              flex-1 h-11 rounded-2xl cursor-pointer
+              border border-white/10
+              bg-white/5
+            "
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  onClick={confirmInvoicePayment}
+                  className="
+              flex-1 h-11 rounded-2xl cursor-pointer
+              bg-emerald-400 text-black font-medium
+            "
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* FAB MOBILE */}
       {!selected && (

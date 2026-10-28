@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import OnboardingProgress from "../components/onboarding/OnboardingProgress";
 import { useTransactions } from "../contexts/TransactionContext";
 import TransactionList from "../components/TransactionList";
 import RightSidebarTransactions from "../components/RightSidebarTransactions";
@@ -26,6 +28,7 @@ export default function Transactions() {
   const { accounts = [] } = useAccounts();
   const [showMobileForm, setShowMobileForm] = useState(false);
   const { theme, themeName } = useTheme();
+  const navigate = useNavigate();
 
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -86,8 +89,30 @@ export default function Transactions() {
       isPreview: true,
     }));
 
-  const allTransactions = [...transactions, ...budgetAsTransactions];
+  const uniqueByKey = (list, getKey) => {
+    const map = new Map();
 
+    list.forEach((item) => {
+      const key = getKey(item);
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    });
+
+    return Array.from(map.values());
+  };
+
+  const cleanTransactions = uniqueByKey(transactions, (t) => {
+    if (t.invoicePaymentId) return t.invoicePaymentId;
+
+    return `${t.descricao}-${t.valor}-${t.data}-${t.formaPagamento}-${t.cartaoId || ""}-${t.accountId || ""}`;
+  });
+
+  const cleanBudgetAsTransactions = uniqueByKey(budgetAsTransactions, (t) => {
+    return `${t.descricao}-${t.valor}-${t.data}-${t.formaPagamento}-${t.cartaoId || ""}-${t.accountId || ""}`;
+  });
+
+  const allTransactions = [...cleanTransactions, ...cleanBudgetAsTransactions];
   const filtradas = filterTransactions(allTransactions, filters);
 
   const ordenadas = [...filtradas].sort((a, b) => {
@@ -209,6 +234,9 @@ export default function Transactions() {
     setShowMobileForm(true);
   };
 
+  const onboardingActive =
+    localStorage.getItem("nivo-onboarding-active") === "true";
+
   return (
     <div
       className={`relative flex flex-col lg:flex-row h-full overflow-hidden ${theme.textPrimary}`}
@@ -245,6 +273,9 @@ export default function Transactions() {
               />
             }
           />
+
+          <OnboardingProgress />
+
           <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1 shrink-0">
             {[
               { label: "Todas", value: "todos" },
@@ -565,6 +596,34 @@ export default function Transactions() {
               </div>
             </AnimatePresence>
           </div>
+
+          {onboardingActive && transactions.length > 0 && (
+            <div className="mt-6 flex justify-center lg:justify-start">
+              <button
+                onClick={() => navigate("/onboarding-complete")}
+                className="
+                  h-12 px-6 rounded-2xl
+                  bg-emerald-400
+                  text-black
+                  font-semibold
+                  shadow-[0_10px_30px_rgba(16,185,129,0.25)]
+                "
+              >
+                <span
+                  className="
+                  w-6 h-6 rounded-full
+                  flex items-center justify-center
+                  text-xs font-semibold
+                  bg-emerald-400/15
+                  border border-emerald-400/20
+                "
+                >
+                  →
+                </span>
+                Finalizar configuração
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

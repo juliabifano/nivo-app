@@ -1,52 +1,81 @@
 import { useState, useEffect } from "react";
 import { createCard } from "../core/cards/cardFactory";
-
-const STORAGE_KEY = "cards";
+import {
+  getCards,
+  createCard as createCardRepo,
+  updateCard,
+  deleteCard,
+} from "../repositories/cardRepository";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export function useCardStore() {
+  const { user } = useAuth();
   const [cards, setCards] = useState([]);
 
-  // 🔥 carregar do localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!user) return;
 
-    if (saved) {
-      try {
-        setCards(JSON.parse(saved));
-      } catch (err) {
-        console.error("Erro ao carregar cartões:", err);
-      }
+    async function load() {
+      const data = await getCards(user.id);
+      setCards(data || []);
     }
-  }, []);
 
-  // 🔥 persistência automática
+    load();
+  }, [user]);
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-  }, [cards]);
+    if (!user) return;
 
-  // ➕ adicionar cartão
-  function add(raw) {
+    const channel = supabase
+      .channel("cards-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "cards",
+        },
+        async () => {
+          const data = await getCards(user.id);
+
+          setCards(data || []);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  async function add(raw) {
+    if (!user) return null;
+
     const novo = createCard(raw);
 
-    setCards((prev) => [...prev, novo]);
+    const saved = await createCardRepo({
+      ...novo,
+      user_id: user.id,
+    });
 
-    return novo;
+    if (!saved) return null;
+
+    setCards((prev) => [saved, ...prev]);
+    return saved;
   }
 
-  // ❌ remover cartão
-  function remove(id) {
+  async function remove(id) {
+    await deleteCard(id);
     setCards((prev) => prev.filter((c) => c.id !== id));
   }
 
-  // ✏️ atualizar cartão
-  function update(id, data) {
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, ...data }
-          : c
-      )
-    );
+  async function update(id, data) {
+    const saved = await updateCard(id, data);
+
+    if (!saved) return;
+
+    setCards((prev) => prev.map((c) => (c.id === id ? saved : c)));
   }
 
   return {

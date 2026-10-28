@@ -1,35 +1,93 @@
 import { useState, useEffect } from "react";
 import { createTransaction } from "../core/transactions/transactionFactory";
+import {
+  getTransactions,
+  createTransaction as createTransactionRepo,
+  deleteTransaction,
+} from "../repositories/transactionRepository";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export function useTransactionStore() {
+  const { user } = useAuth();
+
   const [transactions, setTransactions] = useState([]);
 
+  // -----------------------------
+  // LOAD
+  // -----------------------------
   useEffect(() => {
-    const saved = localStorage.getItem("transactions");
-    if (saved) {
-      setTransactions(JSON.parse(saved));
+    if (!user) return;
+
+    async function load() {
+      const data = await getTransactions(user.id);
+
+      setTransactions(data || []);
     }
-  }, []);
+
+    load();
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem("transactions", JSON.stringify(transactions));
-  }, [transactions]);
+    if (!user) return;
 
-  function add(raw) {
+    const channel = supabase
+      .channel("transactions-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "transactions",
+        },
+        async () => {
+          const data = await getTransactions(user.id);
+
+          setTransactions(data || []);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // -----------------------------
+  // ADD
+  // -----------------------------
+  async function add(raw) {
+    if (!user) return;
+
     const nova = createTransaction(raw);
 
-    setTransactions((prev) => [...prev, nova]);
+    const saved = await createTransactionRepo({
+      ...nova,
+      user_id: user.id,
+    });
 
-    return nova;
+    if (!saved) return null;
+
+    setTransactions((prev) => [saved, ...prev]);
+
+    return saved;
   }
 
+  // -----------------------------
+  // UPDATE
+  // -----------------------------
   function update(id, data) {
     setTransactions((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...data } : t)),
     );
   }
 
-  function remove(id) {
+  // -----------------------------
+  // REMOVE
+  // -----------------------------
+  async function remove(id) {
+    await deleteTransaction(id);
+
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   }
 

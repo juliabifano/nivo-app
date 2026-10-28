@@ -49,33 +49,68 @@ export function getDashboardSnapshot({
       origem: "transacao",
     }));
 
-  const monthlyItems = [...budgetExpanded, ...transactionItems];
+  const realizedItems = transactionItems;
 
-  const receitas = monthlyItems
+  const plannedItems = budgetExpanded.filter((budgetItem) => {
+    const alreadyRealized = transactionItems.some((t) => {
+      return (
+        t.origem !== "pagamento_fatura" &&
+        String(t.descricao).toLowerCase() ===
+          String(budgetItem.descricao).toLowerCase() &&
+        Number(t.valorFinal || 0) === Number(budgetItem.valorFinal || 0)
+      );
+    });
+
+    return !alreadyRealized;
+  });
+
+  const dashboardItems = [...realizedItems, ...plannedItems];
+
+  const receitas = dashboardItems
     .filter((i) => i.tipo === "receita")
     .reduce((acc, i) => acc + Number(i.valorFinal || 0), 0);
 
-  const despesas = monthlyItems
+  const despesas = dashboardItems
     .filter((i) => i.tipo === "despesa")
     .reduce((acc, i) => acc + Number(i.valorFinal || 0), 0);
 
   const chartData = months.map((mes) => {
-    let receita = 0;
-    let despesa = 0;
+    const budgetMonth = budgetItems
+      .filter((item) => item.meses?.includes(mes))
+      .map((item) => ({
+        ...item,
+        valorFinal: Number(item.valorMensal || 0),
+      }));
 
-    budgetItems.forEach((item) => {
-      if (!item.meses?.includes(mes)) return;
+    const transactionMonth = transactions
+      .filter((t) => getMonthFromDate(t.data) === mes)
+      .map((t) => ({
+        ...t,
+        valorFinal: Number(t.valor || 0),
+      }));
 
-      if (item.tipo === "receita") receita += Number(item.valorMensal || 0);
-      else despesa += Number(item.valorMensal || 0);
+    const plannedMonth = budgetMonth.filter((budgetItem) => {
+      const alreadyRealized = transactionMonth.some((t) => {
+        return (
+          t.origem !== "pagamento_fatura" &&
+          String(t.descricao).toLowerCase() ===
+            String(budgetItem.descricao).toLowerCase() &&
+          Number(t.valorFinal || 0) === Number(budgetItem.valorFinal || 0)
+        );
+      });
+
+      return !alreadyRealized;
     });
 
-    transactions.forEach((t) => {
-      if (getMonthFromDate(t.data) !== mes) return;
+    const monthItems = [...transactionMonth, ...plannedMonth];
 
-      if (t.tipo === "receita") receita += Number(t.valor || 0);
-      else despesa += Number(t.valor || 0);
-    });
+    const receita = monthItems
+      .filter((i) => i.tipo === "receita")
+      .reduce((acc, i) => acc + Number(i.valorFinal || 0), 0);
+
+    const despesa = monthItems
+      .filter((i) => i.tipo === "despesa")
+      .reduce((acc, i) => acc + Number(i.valorFinal || 0), 0);
 
     return { mes, receita, despesa };
   });
@@ -91,7 +126,7 @@ export function getDashboardSnapshot({
 
   const topCategoriesMap = {};
 
-  monthlyItems
+  dashboardItems
     .filter((i) => i.tipo === "despesa")
     .forEach((i) => {
       topCategoriesMap[i.categoriaNome] =

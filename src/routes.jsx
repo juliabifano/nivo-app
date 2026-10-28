@@ -12,15 +12,30 @@ import Schedule from "./pages/Schedule";
 import More from "./pages/More";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import Onboarding from "./pages/Onboarding";
+import OnboardingGuard from "./routes/OnboardingGuard";
+import Categories from "./pages/Categories";
+import OnboardingComplete from "./pages/OnboardingComplete";
 
 export default function AppRoutes() {
   return (
     <Routes>
       {/* HOME (SEM LAYOUT) */}
       <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
 
       {/* APP (COM LAYOUT) */}
-      <Route element={<Layout />}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <Layout />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        }
+      >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/annual" element={<BudgetAnnual />} />
         <Route path="/monthly" element={<BudgetMonthly />} />
@@ -31,7 +46,24 @@ export default function AppRoutes() {
         <Route path="/more" element={<More />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/categories" element={<Categories />} />
       </Route>
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/onboarding-complete"
+        element={
+          <ProtectedRoute>
+            <OnboardingComplete />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

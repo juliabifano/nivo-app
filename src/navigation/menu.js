@@ -5,6 +5,7 @@ import TransferIcon from "../assets/icons/transfer.svg?react";
 import CalendarIcon from "../assets/icons/Calendar.svg?react";
 import CardsIcon from "../assets/icons/cards.svg?react";
 import NoteIcon from "../assets/icons/Note.svg?react";
+import CategoryIcon from "../assets/icons/category.svg?react";
 
 export default [
   { label: "Dashboard", path: "/dashboard", icon: HomeIcon },
@@ -13,5 +14,6 @@ export default [
   { label: "Transações", path: "/transactions", icon: TransferIcon },
   { label: "Cartões", path: "/cards", icon: CardIcon },
   { label: "Contas", path: "/accounts", icon: CardsIcon },
+  { label: "Categorias", path: "/categories", icon: CategoryIcon },
   { label: "Agenda", path: "/schedule", icon: CalendarIcon },
 ];

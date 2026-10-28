@@ -344,16 +344,59 @@ export function useDashboardData() {
     },
   };
 
+  const currentInvoiceByCard = cards.map((card) => {
+    const hoje = new Date();
+
+    let mes = hoje.getMonth() + 1;
+    let ano = hoje.getFullYear();
+
+    if (hoje.getDate() > Number(card.fechamento || 10)) {
+      mes++;
+
+      if (mes > 12) {
+        mes = 1;
+        ano++;
+      }
+    }
+
+    const invoiceId = `invoice-${card.id}-${mes}-${ano}`;
+
+    const payment = transactions.find((t) => t.invoicePaymentId === invoiceId);
+
+    const paymentSnapshot = payment?.invoiceSnapshot;
+
+    const total = paymentSnapshot
+      ? Number(paymentSnapshot.total || 0)
+      : transactions
+          .filter(
+            (t) =>
+              String(t.cartaoId) === String(card.id) &&
+              t.formaPagamento === "credito" &&
+              t.origem !== "pagamento_fatura",
+          )
+          .reduce((acc, t) => acc + Number(t.valor || 0), 0);
+
+    return {
+      cardId: card.id,
+      total,
+      isPaid: !!payment,
+      payment,
+      mes,
+      ano,
+    };
+  });
+
   const featuredCardStats = featuredCard
     ? (() => {
         const transactionsCard = transactions.filter(
           (t) => String(t.cartaoId) === String(featuredCard.id),
         );
 
-        const total = transactionsCard.reduce(
-          (acc, t) => acc + Number(t.valor || 0),
-          0,
+        const currentInvoice = currentInvoiceByCard.find(
+          (i) => String(i.cardId) === String(featuredCard.id),
         );
+
+        const total = currentInvoice?.total || 0;
 
         const limit =
           featuredCard.tipo === "vale"

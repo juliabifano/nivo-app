@@ -63,18 +63,20 @@ export default function RightSidebarAccounts({
   `;
 
   const desktopInputClass = `
-    w-full p-2 rounded-lg outline-none border transition-all
-    ${theme.surface}
-    border ${theme.border}
-    ${theme.textPrimary}
-  `;
+  w-full p-2 rounded-lg outline-none cursor-pointer border
+  ${
+    themeName === "light"
+      ? "bg-white border-slate-200 text-slate-900"
+      : "bg-[#0B1220] border-white/[0.08] text-white"
+  }
+`;
 
   const fieldClass = isMobile ? inputClass : desktopInputClass;
-  
+
   const optionClass =
-  themeName === "light"
-    ? "bg-white text-slate-900"
-    : "bg-[#111827] text-white";
+    themeName === "light"
+      ? "bg-white text-slate-900"
+      : "bg-[#111827] text-white";
 
   return (
     <div
@@ -86,12 +88,14 @@ export default function RightSidebarAccounts({
             ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
           `
           : `
-            fixed right-4 top-5 w-[320px]
-            ${theme.surface}
+            fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
+            ${themeName === "light" ? "bg-white" : "bg-[#111827]"}
             border ${theme.border}
             ${theme.textPrimary}
-            p-5 rounded-2xl space-y-3
-            backdrop-blur-md
+            p-5 rounded-2xl
+            overflow-y-auto space-y-3
+            shadow-[0_12px_40px_rgba(0,0,0,0.28)]
+            z-40
           `
       }
     >
@@ -111,7 +115,9 @@ export default function RightSidebarAccounts({
         onChange={(e) => setForm({ ...form, banco: e.target.value })}
         className={fieldClass}
       >
-        <option className={optionClass} value="">Selecionar banco</option>
+        <option className={optionClass} value="">
+          Selecionar banco
+        </option>
 
         {Object.entries(BANKS).map(([key, bank]) => (
           <option className={optionClass} key={key} value={key}>
@@ -125,9 +131,15 @@ export default function RightSidebarAccounts({
         onChange={(e) => setForm({ ...form, tipo: e.target.value })}
         className={fieldClass}
       >
-        <option className={optionClass} value="corrente">Corrente</option>
-        <option className={optionClass} value="poupanca">Poupança</option>
-        <option className={optionClass} value="carteira">Carteira</option>
+        <option className={optionClass} value="corrente">
+          Corrente
+        </option>
+        <option className={optionClass} value="poupanca">
+          Poupança
+        </option>
+        <option className={optionClass} value="carteira">
+          Carteira
+        </option>
       </select>
 
       <input
@@ -145,9 +157,10 @@ export default function RightSidebarAccounts({
           bg-emerald-400 text-black
           font-medium
           flex items-center justify-center
-          shadow-[0_14px_40px_rgba(16,185,129,0.22)]
+          shadow-none
           active:scale-[0.98]
           transition-all
+          cursor-pointer
         "
       >
         {editing ? "Salvar" : "Adicionar"}
