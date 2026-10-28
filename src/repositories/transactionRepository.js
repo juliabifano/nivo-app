@@ -88,3 +88,17 @@ export async function deleteTransaction(id) {
     console.error(error);
   }
 }
+
+export async function deleteSchedulePaymentTransactions(userId, paymentId) {
+  // Inclui duplicatas antigas e pagamentos de fatura registrados pela Agenda.
+  const value = JSON.stringify(paymentId);
+  const { data, error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("user_id", userId)
+    .or(`schedule_payment_id.eq.${value},invoice_payment_id.eq.${value}`)
+    .select("id");
+
+  if (error) throw error;
+  return (data || []).map((transaction) => transaction.id);
+}

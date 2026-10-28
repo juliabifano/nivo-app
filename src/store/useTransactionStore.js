@@ -4,9 +4,11 @@ import {
   getTransactions,
   createTransaction as createTransactionRepo,
   deleteTransaction,
+  deleteSchedulePaymentTransactions,
 } from "../repositories/transactionRepository";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import { isSchedulePayment } from "../core/transactions/schedulePayment";
 
 export function useTransactionStore() {
   const { user } = useAuth();
@@ -70,7 +72,7 @@ export function useTransactionStore() {
 
     if (!saved) return null;
 
-    setTransactions((prev) => [saved, ...prev]);
+    setTransactions((prev) => [saved, ...prev.filter((transaction) => transaction.id !== saved.id)]);
 
     return saved;
   }
@@ -99,5 +101,14 @@ export function useTransactionStore() {
     add,
     update,
     remove,
+    async removePayment(paymentId) {
+      if (!user) throw new Error("Entre na sua conta para alterar um pagamento.");
+      const deletedIds = await deleteSchedulePaymentTransactions(user.id, paymentId);
+      const linked = transactions.filter((transaction) => isSchedulePayment(transaction, paymentId));
+      if (linked.some((transaction) => !deletedIds.includes(transaction.id))) {
+        throw new Error("O banco não confirmou a exclusão de todos os lançamentos deste pagamento.");
+      }
+      setTransactions((prev) => prev.filter((transaction) => !isSchedulePayment(transaction, paymentId)));
+    },
   };
 }

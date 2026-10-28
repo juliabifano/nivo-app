@@ -3,10 +3,11 @@ import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import { useCards } from "../contexts/CardContext";
 import { getPaymentSchedule } from "../core/selectors/paymentScheduleSelectors";
-import { usePaymentSchedule } from "../contexts/PaymentScheduleContext";
+import { getScheduleSummary } from "../core/selectors/scheduleSummary";
+import { createSchedulePaymentController } from "../core/transactions/schedulePayment";
 import { useAccounts } from "../contexts/AccountContext";
 import { mapAccountsWithBalance } from "../core/selectors/accountSelectors";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../theme/useTheme";
 import SectionHeader from "../components/ui/SectionHeader";
 import GlassTabs from "../components/ui/GlassTabs";
@@ -14,9 +15,8 @@ import Chart from "react-apexcharts";
 
 export default function Schedule() {
   const { items = [] } = useBudgetAnnual();
-  const { transactions = [], add } = useTransactions();
+  const { transactions = [], add, removePayment } = useTransactions();
   const { cards = [] } = useCards();
-  const { paidIds, markAsPaid, unmarkAsPaid } = usePaymentSchedule();
   const { accounts = [] } = useAccounts();
   const { theme, themeName } = useTheme();
 
@@ -39,6 +39,9 @@ export default function Schedule() {
   const currentYear = new Date().getFullYear();
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [paymentController] = useState(createSchedulePaymentController);
+  const [pendingIds, setPendingIds] = useState([]);
+  const [paymentError, setPaymentError] = useState("");
 
   const accountsWithBalance = mapAccountsWithBalance(accounts, transactions);
 
@@ -53,7 +56,6 @@ export default function Schedule() {
     cards,
     month: selectedMonth,
     year: currentYear,
-    paidIds,
     initialBalance: totalAccountsBalance,
   });
 
@@ -91,12 +93,6 @@ export default function Schedule() {
       currency: "BRL",
     });
 
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-    });
-
   const groupByDate = (list) => {
     return list.reduce((acc, item) => {
       const key = getLocalDateKey(item.data);
@@ -110,31 +106,25 @@ export default function Schedule() {
 
   const renderItem = (item) => {
     const isPaid = item.status === "pago";
+    const isIncome = item.tipo === "receita";
     const isToday = item.status === "hoje";
     const isOverdue = item.status === "atrasado";
 
-    const handleTogglePaid = () => {
-      if (!isPaid) {
-        markAsPaid(item.paymentId);
-
-        add({
-          descricao: item.descricao,
-          valor: item.valor,
-          tipo: item.tipo,
-          data: new Date(item.data).toISOString().split("T")[0],
-          categoriaId: item.categoriaId || "",
-          formaPagamento: item.formaPagamento || "pix",
-          accountId: item.accountId || "",
-          cartaoId: item.cartaoId || "",
-          schedulePaymentId: item.paymentId,
-        });
-      } else {
-        unmarkAsPaid(item.paymentId);
+    const handleTogglePaid = async () => {
+      if (paymentController.isPending(item.paymentId)) return;
+      setPaymentError("");
+      setPendingIds((prev) => [...prev, item.paymentId]);
+      try {
+        await paymentController.toggle({ item, transactions, add, removePayment });
+      } catch {
+        setPaymentError("Não foi possível alterar a realização. Tente novamente.");
+      } finally {
+        setPendingIds((prev) => prev.filter((id) => id !== item.paymentId));
       }
     };
 
     return (
-      <motion.div
+      <Motion.div
         key={item.paymentId}
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{
@@ -192,32 +182,41 @@ export default function Schedule() {
           </div>
 
           <p className={`text-xs ${theme.textSecondary} mt-1`}>
-            {item.origem === "orcamento" ? "Orçamento" : "Fatura"}
+            <span className={isIncome ? theme.success : theme.danger}>
+              {isIncome ? "Receita" : "Despesa"}
+            </span>
+            {" · "}{item.origem === "orcamento" ? "Orçamento" : "Fatura"}
           </p>
 
           <p
             className={`text-xs mt-2 ${
-              item.saldoPrevisto < 0 ? "text-red-300" : "text-emerald-300"
+              item.saldoPrevisto < 0 ? theme.danger : theme.success
             }`}
           >
-            Saldo previsto: {formatCurrency(item.saldoPrevisto)}
+            Saldo acumulado: {formatCurrency(item.saldoPrevisto)}
           </p>
         </div>
 
         <div className="relative z-10 flex flex-col items-end gap-3 shrink-0">
-          <p className={`font-semibold ${theme.textPrimary}`}>
-            {formatCurrency(item.valor)}
+          <p className={`font-semibold ${isIncome ? theme.success : theme.danger}`}>
+            {isIncome ? "+" : "−"} {formatCurrency(item.valor)}
           </p>
 
           <button
             type="button"
             onClick={handleTogglePaid}
+            role="switch"
+            aria-checked={isPaid}
+            aria-label={`${isIncome ? "Recebimento" : "Pagamento"} de ${item.descricao} realizado`}
+            aria-busy={pendingIds.includes(item.paymentId)}
+            disabled={pendingIds.includes(item.paymentId)}
             className={`
             relative
             w-12 h-7
             rounded-full
             border
             transition-all
+            disabled:opacity-50 disabled:cursor-wait
             ${
               isPaid
                 ? themeName === "light"
@@ -229,7 +228,7 @@ export default function Schedule() {
             }
           `}
           >
-            <motion.span
+            <Motion.span
               animate={{
                 x: isPaid ? 20 : 2,
               }}
@@ -257,23 +256,14 @@ export default function Schedule() {
             `}
             >
               {isPaid ? "✓" : ""}
-            </motion.span>
+            </Motion.span>
           </button>
         </div>
-      </motion.div>
+      </Motion.div>
     );
   };
 
-  const totalPrevisto = schedule.reduce(
-    (acc, item) => acc + Number(item.valor || 0),
-    0,
-  );
-
-  const totalPago = schedule
-    .filter((item) => item.status === "pago")
-    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
-
-  const totalPendente = totalPrevisto - totalPago;
+  const summary = getScheduleSummary(schedule);
 
   const saldoProjetado =
     schedule.length > 0
@@ -377,8 +367,8 @@ export default function Schedule() {
       <div className="w-full max-w-4xl h-full min-h-0 flex flex-col gap-4 lg:gap-6 overflow-hidden">
         <div className="shrink-0 flex flex-col gap-4 lg:gap-6">
           <SectionHeader
-            title="Agenda de pagamentos"
-            subtitle="Previsão de contas, faturas e pagamentos do mês"
+            title="Agenda financeira"
+            subtitle="Receitas, despesas e faturas do mês"
             icon={
               <img
                 src={
@@ -391,6 +381,8 @@ export default function Schedule() {
             }
           />
 
+          {paymentError && <p role="alert" className="text-sm text-red-500">{paymentError}</p>}
+
           <GlassTabs
             className="w-full justify-between"
             value={selectedMonth}
@@ -402,53 +394,32 @@ export default function Schedule() {
           />
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div
-              className={`
-              ${theme.surface}
-              border ${theme.border}
-              rounded-2xl
-              p-2.5 lg:p-3
-              backdrop-blur-xl
-            `}
-            >
-              <p className={`text-xs ${theme.textSecondary}`}>Previsto</p>
-
-              <p className={`font-medium mt-1 ${theme.textPrimary}`}>
-                {formatCurrency(totalPrevisto)}
-              </p>
-            </div>
-
-            <div
-              className={`
-              ${theme.surface}
-              border ${theme.border}
-              rounded-2xl
-              p-2.5 lg:p-3
-              backdrop-blur-xl
-            `}
-            >
-              <p className={`text-xs ${theme.textSecondary}`}>Pago</p>
-
-              <p className={`font-medium mt-1 ${theme.success}`}>
-                {formatCurrency(totalPago)}
-              </p>
-            </div>
-
-            <div
-              className={`
-              ${theme.surface}
-              border ${theme.border}
-              rounded-2xl
-              p-2.5 lg:p-3
-              backdrop-blur-xl
-            `}
-            >
-              <p className={`text-xs ${theme.textSecondary}`}>Pendente</p>
-
-              <p className={`font-medium mt-1 ${theme.danger}`}>
-                {formatCurrency(totalPendente)}
-              </p>
-            </div>
+            {[
+              ["previsto", "Previsto"],
+              ["realizado", "Realizado"],
+              ["pendente", "Pendente"],
+            ].map(([key, label]) => (
+              <div
+                key={key}
+                className={`${theme.surface} border ${theme.border} rounded-2xl p-2.5 lg:p-3 backdrop-blur-xl min-w-0`}
+              >
+                <p className={`text-xs ${theme.textSecondary}`}>{label}</p>
+                <div className="mt-2 flex flex-col gap-2 text-xs">
+                  <div>
+                    <p className={theme.textSecondary}>Receitas</p>
+                    <p className={`font-medium mt-0.5 break-words ${theme.success}`}>
+                      + {formatCurrency(summary[key].receita)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className={theme.textSecondary}>Despesas</p>
+                    <p className={`font-medium mt-0.5 break-words ${theme.danger}`}>
+                      − {formatCurrency(summary[key].despesa)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
 
             <div
               className={`
@@ -460,7 +431,7 @@ export default function Schedule() {
             `}
             >
               <p className={`text-xs ${theme.textSecondary}`}>
-                Saldo projetado
+                Saldo acumulado
               </p>
 
               <p
@@ -469,6 +440,9 @@ export default function Schedule() {
                 }`}
               >
                 {formatCurrency(saldoProjetado)}
+              </p>
+              <p className={`text-[11px] mt-2 ${theme.textSecondary}`}>
+                Saldo atual + receitas pendentes − despesas pendentes
               </p>
             </div>
           </div>
@@ -546,7 +520,7 @@ export default function Schedule() {
         >
           {schedule.length === 0 ? (
             <p className="text-gray-400 text-sm">
-              Nenhum pagamento previsto para este mês.
+              Nenhuma receita ou despesa prevista para este mês.
             </p>
           ) : (
             <div className="flex flex-col gap-3">
@@ -555,7 +529,7 @@ export default function Schedule() {
                   ["ATRASADO", groupedByStatus.atrasado, "text-red-400"],
                   ["HOJE", groupedByStatus.hoje, "text-yellow-300"],
                   ["PRÓXIMOS", groupedByStatus.pendente, "text-gray-400"],
-                  ["PAGOS", groupedByStatus.pago, "text-emerald-300"],
+                  ["REALIZADOS", groupedByStatus.pago, theme.success],
                 ].map(([title, list, color]) => {
                   if (list.length === 0) return null;
 

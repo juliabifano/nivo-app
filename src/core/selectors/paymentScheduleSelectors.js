@@ -1,4 +1,5 @@
-import { generateInvoice } from "../../utils/invoices";
+import { generateInvoice } from "../../utils/invoices.js";
+import { isSchedulePayment } from "../transactions/schedulePayment.js";
 
 const months = {
   jan: 0,
@@ -38,7 +39,6 @@ export function getPaymentSchedule({
   cards = [],
   month,
   year,
-  paidIds = [],
   initialBalance = 0,
 }) {
   const schedule = [];
@@ -48,7 +48,7 @@ export function getPaymentSchedule({
 
     const date = new Date(year, months[month], item.diaVencimento || 1);
     const paymentId = `orcamento-${item.id}-${month}-${year}`;
-    const isPaid = paidIds.includes(paymentId);
+    const isPaid = transactions.some((transaction) => isSchedulePayment(transaction, paymentId));
 
     schedule.push({
       paymentId,
@@ -60,6 +60,8 @@ export function getPaymentSchedule({
       data: date,
       categoriaId: item.categoriaId,
       accountId: item.accountId || "",
+      formaPagamento: item.formaPagamento || "pix",
+      cartaoId: item.cartaoId || null,
       status: getStatus(date, isPaid),
     });
   });
@@ -84,7 +86,7 @@ export function getPaymentSchedule({
 
     const paymentId = `invoice-${card.id}-${monthNumber}-${year}`;
 
-    const isPaid = transactions.some((t) => t.invoicePaymentId === paymentId);
+    const isPaid = transactions.some((transaction) => isSchedulePayment(transaction, paymentId));
 
     schedule.push({
       paymentId,
