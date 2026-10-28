@@ -152,18 +152,20 @@ export default function RightSidebarCards({
 `;
 
   const desktopInputClass = `
-  w-full p-2 rounded-lg outline-none cursor-pointer
-  ${theme.surface}
-  border ${theme.border}
-  ${theme.textPrimary}
+  w-full p-2 rounded-lg outline-none cursor-pointer border
+  ${
+    themeName === "light"
+      ? "bg-white border-slate-200 text-slate-900"
+      : "bg-[#0B1220] border-white/[0.08] text-white"
+  }
 `;
 
   const fieldClass = isMobile ? inputClass : desktopInputClass;
 
   const optionClass =
-  themeName === "light"
-    ? "bg-white text-slate-900"
-    : "bg-[#111827] text-white";
+    themeName === "light"
+      ? "bg-white text-slate-900"
+      : "bg-[#111827] text-white";
 
   return (
     <div
@@ -175,11 +177,14 @@ export default function RightSidebarCards({
         ${themeName === "light" ? "bg-[#F4F7F6]" : "bg-[#07111F]"}
       `
           : `
-        fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px] z-40
-        ${theme.surface}
+        fixed right-4 top-5 h-[calc(100vh-40px)] w-[320px]
+        ${themeName === "light" ? "bg-white" : "bg-[#111827]"}
         border ${theme.border}
         ${theme.textPrimary}
-        p-5 space-y-3 rounded-2xl shadow-xl backdrop-blur-md
+        p-5 rounded-2xl
+        overflow-y-auto space-y-3
+        shadow-[0_12px_40px_rgba(0,0,0,0.28)]
+        z-40
       `
       }
     >
@@ -224,7 +229,9 @@ export default function RightSidebarCards({
           });
         }}
       >
-        <option className={optionClass} value="">Selecionar banco</option>
+        <option className={optionClass} value="">
+          Selecionar banco
+        </option>
 
         {Object.entries(BANKS).map(([key, bank]) => (
           <option className={optionClass} key={key} value={key}>
@@ -245,7 +252,9 @@ export default function RightSidebarCards({
         value={form.accountId}
         onChange={(e) => setForm({ ...form, accountId: e.target.value })}
       >
-        <option className={optionClass} value="">Conta vinculada</option>
+        <option className={optionClass} value="">
+          Conta vinculada
+        </option>
 
         {accounts
           .filter((a) => a.banco === form.banco)
@@ -274,10 +283,18 @@ export default function RightSidebarCards({
           });
         }}
       >
-        <option className={optionClass} value="credito">Crédito</option>
-        <option className={optionClass} value="debito">Débito</option>
-        <option className={optionClass} value="multiplo">Múltiplo</option>
-        <option className={optionClass} value="vale">Vale</option>
+        <option className={optionClass} value="credito">
+          Crédito
+        </option>
+        <option className={optionClass} value="debito">
+          Débito
+        </option>
+        <option className={optionClass} value="multiplo">
+          Múltiplo
+        </option>
+        <option className={optionClass} value="vale">
+          Vale
+        </option>
       </select>
 
       {/* CAMPOS DINÂMICOS */}
@@ -383,16 +400,23 @@ export default function RightSidebarCards({
         className={
           isMobile
             ? `
-      w-full
-      h-12
-      rounded-2xl
-      bg-emerald-400
-      text-black
-      font-medium
-      active:scale-[0.98]
-      transition-all
-    `
-            : "cursor-pointer w-full bg-emerald-400 text-black p-2 rounded-lg"
+          w-full
+          h-12
+          rounded-2xl
+          bg-emerald-400
+          text-black
+          font-medium
+          active:scale-[0.98]
+          transition-all
+        `
+           : `
+          w-full h-12 rounded-2xl
+          bg-emerald-400
+          text-black
+          font-medium
+          transition-all cursor-pointer
+          shadow-none
+        `
         }
       >
         {editandoCartao ? "Salvar alterações" : "Adicionar"}

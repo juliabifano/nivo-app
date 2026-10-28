@@ -121,11 +121,46 @@ export default function Settings() {
 
           <SettingsSection title="Dados" theme={theme}>
             <button
+              onClick={() => {
+                const data = {};
+
+                Object.keys(localStorage).forEach((key) => {
+                  data[key] = localStorage.getItem(key);
+                });
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                  type: "application/json",
+                });
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+
+                a.href = url;
+                a.download = `nivo-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+              }}
+              className={`
+    w-full text-left p-5 transition-all cursor-pointer
+    ${theme.surfaceHover}
+  `}
+            >
+              <p className="text-sm font-medium">Exportar dados</p>
+
+              <p className={`text-xs mt-1 ${theme.textSecondary}`}>
+                Baixe um backup local das informações do app.
+              </p>
+            </button>
+
+            <Divider themeName={themeName} />
+
+            <button
               onClick={resetSettings}
               className={`
-              w-full text-left p-5 transition-all cursor-pointer
-              ${theme.surfaceHover}
-            `}
+    w-full text-left p-5 transition-all cursor-pointer
+    ${theme.surfaceHover}
+  `}
             >
               <p className={`text-sm font-medium ${theme.dangerText}`}>
                 Restaurar configurações

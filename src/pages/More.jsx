@@ -5,6 +5,7 @@ import { useTheme } from "../theme/useTheme";
 import BudgetIcon from "../assets/icons/budget.svg?react";
 import NoteIcon from "../assets/icons/Note.svg?react";
 import CalendarIcon from "../assets/icons/Calendar.svg?react";
+import CategoryIcon from "../assets/icons/category.svg?react";
 
 const groups = [
   {
@@ -31,6 +32,17 @@ const groups = [
     ],
   },
   {
+    title: "Organização",
+    items: [
+      {
+        title: "Categorias",
+        description: "Gerencie categorias personalizadas",
+        path: "/categories",
+        Icon: CategoryIcon,
+      },
+    ],
+  },
+  {
     title: "Conta",
     items: [
       {
@@ -44,17 +56,6 @@ const groups = [
         description: "Tema, moeda, notificações e segurança",
         path: "/settings",
         Icon: BudgetIcon,
-      },
-    ],
-  },
-  {
-    title: "Dados",
-    items: [
-      {
-        title: "Exportar dados",
-        description: "Backup local das informações do app",
-        path: "/settings/data",
-        Icon: CalendarIcon,
       },
     ],
   },

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SectionHeader from "../components/ui/SectionHeader";
 import { useAccounts } from "../contexts/AccountContext";
@@ -10,11 +11,13 @@ import AccountCard from "../components/accounts/AccountCard";
 import BottomSheet from "../components/ui/BottomSheet";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useTheme } from "../theme/useTheme";
+import OnboardingProgress from "../components/onboarding/OnboardingProgress";
 
 export default function Accounts() {
   const { accounts, remove } = useAccounts();
   const { transactions = [] } = useTransactions();
   const { theme, themeName } = useTheme();
+  const navigate = useNavigate();
 
   const accountsWithBalance = mapAccountsWithBalance(accounts, transactions);
 
@@ -36,6 +39,9 @@ export default function Accounts() {
       setShowMobileForm(true);
     }
   };
+
+  const onboardingActive =
+    localStorage.getItem("nivo-onboarding-active") === "true";
 
   return (
     <div
@@ -72,6 +78,7 @@ export default function Accounts() {
                 />
               }
             />
+            <OnboardingProgress />
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar pb-32 lg:pb-5">
@@ -88,6 +95,37 @@ export default function Accounts() {
                 />
               ))}
             </div>
+            {onboardingActive && accounts.length > 0 && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={() => navigate("/categories")}
+                  className="
+                  h-12 px-5 rounded-2xl
+                  flex items-center gap-3
+                  bg-emerald-400/8
+                  border border-emerald-400/15
+                  text-emerald-300
+                  font-medium
+                  hover:bg-emerald-400/12
+                  hover:border-emerald-400/25
+                  transition-all
+                "
+                >
+                  <span
+                    className="
+                    w-6 h-6 rounded-full
+                    flex items-center justify-center
+                    text-xs font-semibold
+                    bg-emerald-400/15
+                    border border-emerald-400/20
+                  "
+                  >
+                    →
+                  </span>
+                  Continuar para Categorias
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

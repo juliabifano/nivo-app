@@ -6,21 +6,24 @@ import { CardProvider } from "./contexts/CardContext";
 import { BudgetAnnualProvider } from "./contexts/BudgetAnnualContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { PaymentScheduleProvider } from "./contexts/PaymentScheduleContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export default function App() {
   return (
-    <CategoryProvider>
-      <TransactionProvider>
-        <CardProvider>
-          <BudgetAnnualProvider>
-            <AccountProvider>
-              <PaymentScheduleProvider>
-                <AppRoutes />
-              </PaymentScheduleProvider>
-            </AccountProvider>
-          </BudgetAnnualProvider>
-        </CardProvider>
-      </TransactionProvider>
-    </CategoryProvider>
+    <AuthProvider>
+      <CategoryProvider>
+        <TransactionProvider>
+          <CardProvider>
+            <BudgetAnnualProvider>
+              <AccountProvider>
+                <PaymentScheduleProvider>
+                  <AppRoutes />
+                </PaymentScheduleProvider>
+              </AccountProvider>
+            </BudgetAnnualProvider>
+          </CardProvider>
+        </TransactionProvider>
+      </CategoryProvider>
+    </AuthProvider>
   );
 }

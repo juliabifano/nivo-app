@@ -19,6 +19,18 @@ export default function AccountCard({
     (t) => String(t.accountId) === String(account.id),
   );
 
+  const saldoInicial = Number(account.saldoInicial ?? account.saldoAtual ?? 0);
+
+  const totalReceitas = accountTransactions
+    .filter((t) => t.tipo === "receita")
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
+
+  const totalDespesas = accountTransactions
+    .filter((t) => t.tipo === "despesa")
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
+
+  const saldoAtual = saldoInicial + totalReceitas - totalDespesas;
+
   const monthTransactions = accountTransactions.filter((t) => {
     const d = new Date(t.data);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -114,7 +126,7 @@ export default function AccountCard({
               drop-shadow-[0_0_16px_rgba(52,211,153,0.22)]
             "
           >
-            {formatCurrency(account.saldoAtual)}
+            {formatCurrency(saldoAtual)}
           </p>
         </div>
 

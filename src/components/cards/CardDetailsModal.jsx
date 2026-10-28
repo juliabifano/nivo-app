@@ -10,6 +10,7 @@ import { useCards } from "../../contexts/CardContext";
 import BottomSheet from "../ui/BottomSheet";
 import GlassButton from "../ui/GlassButton";
 import GlassTabs from "../ui/GlassTabs";
+import { useAccounts } from "../../contexts/AccountContext";
 import {
   staggerContainer,
   listItem,
@@ -38,12 +39,14 @@ export default function CardDetailsModal(props) {
     setInvoiceDate,
     direction,
     setDirection,
+    onPayInvoice,
   } = props;
 
   if (!selected) return null;
 
   const config = getCardConfig(selected.tipo);
   const temFatura = config.temFatura;
+  const { accounts } = useAccounts();
 
   useEffect(() => {
     if (!temFatura && tab === "fatura") {
@@ -211,7 +214,7 @@ export default function CardDetailsModal(props) {
           );
         })()}
 
-      <div className="flex flex-col gap-3 shrink-0">
+      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-hidden">
         {/* HEADER + AÇÕES */}
         <div className="flex items-center justify-between mt-5">
           <h3 className="text-white font-medium">Detalhes do cartão</h3>
@@ -246,6 +249,7 @@ export default function CardDetailsModal(props) {
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar"
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
@@ -290,6 +294,8 @@ export default function CardDetailsModal(props) {
                 slideHorizontal={slideHorizontal}
                 groupFade={groupFade}
                 staggerContainer={staggerContainer}
+                onPayInvoice={onPayInvoice}
+                accounts={accounts}
               />
             )}
           </motion.div>

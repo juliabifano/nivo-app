@@ -1,39 +1,79 @@
 import { useState, useEffect } from "react";
 import { createAccount } from "../core/accounts/accountFactory";
-
-const STORAGE_KEY = "accounts";
+import {
+  getAccounts,
+  createAccount as createAccountRepo,
+  updateAccount,
+  deleteAccount,
+} from "../repositories/accountRepository";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export function useAccountStore() {
+  const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setAccounts(JSON.parse(saved));
-      } catch {
-        setAccounts([]);
-      }
+    if (!user) return;
+
+    async function load() {
+      const data = await getAccounts(user.id);
+      setAccounts(data || []);
     }
-  }, []);
+
+    load();
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-  }, [accounts]);
+    if (!user) return;
 
-  function add(raw) {
+    const channel = supabase
+      .channel("accounts-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "accounts",
+        },
+        async () => {
+          const data = await getAccounts(user.id);
+          setAccounts(data || []);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  async function add(raw) {
+    if (!user) return null;
+
     const nova = createAccount(raw);
-    setAccounts((prev) => [...prev, nova]);
-    return nova;
+
+    const saved = await createAccountRepo({
+      ...nova,
+      user_id: user.id,
+    });
+
+    if (!saved) return null;
+
+    setAccounts((prev) => [saved, ...prev]);
+    return saved;
   }
 
-  function update(id, data) {
-    setAccounts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...data } : a)),
-    );
+  async function update(id, data) {
+    const saved = await updateAccount(id, data);
+
+    if (!saved) return;
+
+    setAccounts((prev) => prev.map((a) => (a.id === id ? saved : a)));
   }
 
-  function remove(id) {
+  async function remove(id) {
+    await deleteAccount(id);
     setAccounts((prev) => prev.filter((a) => a.id !== id));
   }
 

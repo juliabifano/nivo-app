@@ -1,50 +1,96 @@
 import { useState, useEffect } from "react";
 import { createBudgetItem } from "../core/budget/budgetFactory";
-
-const STORAGE_KEY = "budget_items";
+import {
+  getBudgetItems,
+  createBudgetItem as createBudgetItemRepo,
+  updateBudgetItem,
+  deleteBudgetItem,
+} from "../repositories/budgetRepository";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export function useBudgetStore() {
+  const { user } = useAuth();
+
   const [items, setItems] = useState([]);
 
+  // -----------------------------
+  // LOAD
+  // -----------------------------
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!user) return;
 
-    if (saved) {
-      try {
-        setItems(JSON.parse(saved));
-      } catch {
-        setItems([]);
-      }
+    async function load() {
+      const data = await getBudgetItems(user.id);
+
+      setItems(data || []);
     }
-  }, []);
+
+    load();
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+    if (!user) return;
 
-  function add(raw) {
+    const channel = supabase
+      .channel("budget-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "budget_items",
+        },
+        async () => {
+          const data = await getBudgetItems(user.id);
+
+          setItems(data || []);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // -----------------------------
+  // ADD
+  // -----------------------------
+  async function add(raw) {
+    if (!user) return null;
+
     const novo = createBudgetItem(raw);
-    setItems((prev) => [...prev, novo]);
-    return novo;
+
+    const saved = await createBudgetItemRepo({
+      ...novo,
+      user_id: user.id,
+    });
+
+    if (!saved) return null;
+
+    setItems((prev) => [saved, ...prev]);
+
+    return saved;
   }
 
-  function update(id, data) {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              ...data,
-              valorMensal: Number(data.valorMensal || 0),
-              meses: Array.isArray(data.meses) ? data.meses : [],
-              diaVencimento: Number(data.diaVencimento || 1),
-            }
-          : item,
-      ),
-    );
+  // -----------------------------
+  // UPDATE
+  // -----------------------------
+  async function update(id, data) {
+    const saved = await updateBudgetItem(id, data);
+
+    if (!saved) return;
+
+    setItems((prev) => prev.map((item) => (item.id === id ? saved : item)));
   }
 
-  function remove(id) {
+  // -----------------------------
+  // REMOVE
+  // -----------------------------
+  async function remove(id) {
+    await deleteBudgetItem(id);
+
     setItems((prev) => prev.filter((item) => item.id !== id));
   }
 

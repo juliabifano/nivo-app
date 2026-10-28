@@ -1,4 +1,22 @@
-# React + Vite
+# Nivo
+
+Aplicativo de finanças com React, Vite e Supabase.
+Consulte o [guia de publicação no Coolify](deploy/COOLIFY.md) para configurar o
+build, as variáveis de ambiente e as rotas em produção.
+
+## Rodar localmente no Windows
+
+Na pasta deste arquivo, com Node.js 24 e o `.env` configurado:
+
+```powershell
+npm.cmd ci
+npm.cmd run dev
+```
+
+Se ainda não existir `.env`, copie `.env.example` e preencha os valores do
+Supabase. Preserve o arquivo se ele já existir.
+
+## Documentação original do template
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
