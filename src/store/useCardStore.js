@@ -12,6 +12,7 @@ import { supabase } from "../lib/supabase";
 export function useCardStore() {
   const { user } = useAuth();
   const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -19,6 +20,7 @@ export function useCardStore() {
     async function load() {
       const data = await getCards(user.id);
       setCards(data || []);
+      setLoading(false);
     }
 
     load();
@@ -79,6 +81,7 @@ export function useCardStore() {
   }
 
   return {
+    loading: !!user && loading,
     cards,
     add,
     remove,

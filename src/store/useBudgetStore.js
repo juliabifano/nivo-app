@@ -13,6 +13,7 @@ export function useBudgetStore() {
   const { user } = useAuth();
 
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // -----------------------------
   // LOAD
@@ -24,6 +25,7 @@ export function useBudgetStore() {
       const data = await getBudgetItems(user.id);
 
       setItems(data || []);
+      setLoading(false);
     }
 
     load();
@@ -95,6 +97,7 @@ export function useBudgetStore() {
   }
 
   return {
+    loading: !!user && loading,
     items,
     add,
     update,

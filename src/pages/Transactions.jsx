@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import OnboardingProgress from "../components/onboarding/OnboardingProgress";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import TransactionList from "../components/TransactionList";
 import RightSidebarTransactions from "../components/RightSidebarTransactions";
@@ -234,8 +235,7 @@ export default function Transactions() {
     setShowMobileForm(true);
   };
 
-  const onboardingActive =
-    localStorage.getItem("nivo-onboarding-active") === "true";
+  const { active: onboardingActive } = useOnboarding();
 
   return (
     <div

@@ -1,11 +1,13 @@
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import AnimatedLogo from "../components/brand/AnimatedLogo";
 import { useTheme } from "../theme/useTheme";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 export default function OnboardingComplete() {
   const navigate = useNavigate();
   const { theme, themeName } = useTheme();
+  const { saving, saveStatus } = useOnboarding();
 
   const completedSteps = [
     "Conta criada",
@@ -14,11 +16,8 @@ export default function OnboardingComplete() {
     "Primeira transação registrada",
   ];
 
-  function finishOnboarding() {
-    localStorage.removeItem("nivo-onboarding-active");
-    localStorage.setItem("nivo-onboarding-skipped", "true");
-
-    navigate("/dashboard");
+  async function finishOnboarding() {
+    if (await saveStatus("completed")) navigate("/dashboard");
   }
 
   return (
@@ -30,13 +29,13 @@ export default function OnboardingComplete() {
         ${theme.textPrimary}
       `}
     >
-      <motion.div
+      <Motion.div
         animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.08, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
         className="absolute w-[560px] h-[560px] rounded-full bg-emerald-400/20 blur-[130px]"
       />
 
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 24, scale: 0.96, filter: "blur(10px)" }}
         animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
@@ -51,14 +50,14 @@ export default function OnboardingComplete() {
           text-center
         `}
       >
-        <motion.div
+        <Motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
           <AnimatedLogo size="md" />
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           initial={{ scale: 0.7, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.25, duration: 0.5 }}
@@ -73,7 +72,7 @@ export default function OnboardingComplete() {
           "
         >
           ✓
-        </motion.div>
+        </Motion.div>
 
         <p className="mt-8 text-sm uppercase tracking-[0.25em] text-emerald-300">
           Configuração concluída
@@ -89,7 +88,7 @@ export default function OnboardingComplete() {
 
         <div className="mt-9 grid gap-3 text-left">
           {completedSteps.map((step, index) => (
-            <motion.div
+            <Motion.div
               key={step}
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
@@ -110,14 +109,15 @@ export default function OnboardingComplete() {
               </span>
 
               <span className="font-medium">{step}</span>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 
-        <motion.button
+        <Motion.button
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={finishOnboarding}
+          disabled={saving}
           className="
             mt-10 w-full h-14 rounded-3xl
             bg-[#3EF2C2]
@@ -127,8 +127,8 @@ export default function OnboardingComplete() {
           "
         >
           Entrar no Dashboard
-        </motion.button>
-      </motion.div>
+        </Motion.button>
+      </Motion.div>
     </div>
   );
 }

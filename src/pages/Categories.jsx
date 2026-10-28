@@ -5,6 +5,7 @@ import { useCategories } from "../contexts/CategoryContext";
 import { useTheme } from "../theme/useTheme";
 import { useNavigate } from "react-router-dom";
 import OnboardingProgress from "../components/onboarding/OnboardingProgress";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 export default function Categories() {
   const { categories = [], add, remove } = useCategories();
@@ -25,8 +26,7 @@ export default function Categories() {
     a.nome.localeCompare(b.nome, "pt-BR"),
   );
 
-  const onboardingActive =
-  localStorage.getItem("nivo-onboarding-active") === "true";
+  const { active: onboardingActive } = useOnboarding();
 
   return (
     <div

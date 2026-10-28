@@ -1,10 +1,7 @@
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../../theme/useTheme";
-import { useAccounts } from "../../contexts/AccountContext";
-import { useCategories } from "../../contexts/CategoryContext";
-import { useCards } from "../../contexts/CardContext";
-import { useTransactions } from "../../contexts/TransactionContext";
+import { useOnboarding } from "../../contexts/OnboardingContext";
 
 const steps = [
   { path: "/accounts", label: "Conta" },
@@ -16,14 +13,8 @@ const steps = [
 export default function OnboardingProgress() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, themeName } = useTheme();
-  const { accounts = [] } = useAccounts();
-  const { categories = [] } = useCategories();
-  const { cards = [] } = useCards();
-  const { transactions = [] } = useTransactions();
-
-  const onboardingActive =
-    localStorage.getItem("nivo-onboarding-active") === "true";
+  const { theme } = useTheme();
+  const { active: onboardingActive, steps: stepCompleted, saving, saveStatus } = useOnboarding();
 
   if (!onboardingActive) return null;
 
@@ -31,14 +22,7 @@ export default function OnboardingProgress() {
 
   if (currentIndex === -1) return null;
 
-  const progress = ((currentIndex + 1) / steps.length) * 100;
-
-  const stepCompleted = {
-    "/accounts": accounts.length > 0,
-    "/categories": categories.length > 0,
-    "/cards": cards.length > 0,
-    "/transactions": transactions.length > 0,
-  };
+  const progress = (Object.values(stepCompleted).filter(Boolean).length / steps.length) * 100;
 
   const stepMessages = {
     "/accounts": {
@@ -91,7 +75,7 @@ export default function OnboardingProgress() {
 
   return (
     <div className="w-full flex justify-center">
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className="
@@ -147,7 +131,7 @@ export default function OnboardingProgress() {
             </div>
 
             <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
-              <motion.div
+              <Motion.div
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="h-full rounded-full bg-emerald-400 shadow-[0_0_25px_rgba(62,242,194,0.4)]"
@@ -156,7 +140,7 @@ export default function OnboardingProgress() {
 
             <div className="mt-6 space-y-3">
               {steps.map((step, index) => {
-                const isCompleted = index < currentIndex;
+                const isCompleted = stepCompleted[step.path];
                 const isCurrent = index === currentIndex;
 
                 return (
@@ -202,7 +186,7 @@ export default function OnboardingProgress() {
                     </span>
 
                     {isCurrent && (
-                      <motion.div
+                      <Motion.div
                         animate={{
                           opacity: [0.4, 1, 0.4],
                         }}
@@ -219,11 +203,9 @@ export default function OnboardingProgress() {
             </div>
 
             <button
-              onClick={() => {
-                localStorage.setItem("nivo-onboarding-skipped", "true");
-                localStorage.removeItem("nivo-onboarding-active");
-
-                navigate("/dashboard");
+              disabled={saving}
+              onClick={async () => {
+                if (await saveStatus("skipped")) navigate("/dashboard");
               }}
               className="mt-5 text-sm text-gray-400 hover:text-emerald-400 transition cursor-pointer"
             >
@@ -231,7 +213,7 @@ export default function OnboardingProgress() {
             </button>
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </div>
   );
 }

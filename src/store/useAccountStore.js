@@ -12,6 +12,7 @@ import { supabase } from "../lib/supabase";
 export function useAccountStore() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -19,6 +20,7 @@ export function useAccountStore() {
     async function load() {
       const data = await getAccounts(user.id);
       setAccounts(data || []);
+      setLoading(false);
     }
 
     load();
@@ -78,6 +80,7 @@ export function useAccountStore() {
   }
 
   return {
+    loading: !!user && loading,
     accounts,
     add,
     update,

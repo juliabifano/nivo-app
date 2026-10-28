@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import OnboardingProgress from "../components/onboarding/OnboardingProgress";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import RightSidebarCards from "../components/RightSidebarCards";
 import CardDetailsModal from "../components/cards/CardDetailsModal";
 import CardItem from "../components/cards/CardItem";
@@ -234,8 +235,7 @@ export default function Cards() {
       ? "bg-white text-slate-900"
       : "bg-[#111827] text-white";
 
-  const onboardingActive =
-    localStorage.getItem("nivo-onboarding-active") === "true";
+  const { active: onboardingActive } = useOnboarding();
 
   return (
     <div

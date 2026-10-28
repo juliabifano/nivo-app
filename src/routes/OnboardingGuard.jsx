@@ -1,18 +1,12 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAccounts } from "../contexts/AccountContext";
-import { useCards } from "../contexts/CardContext";
-import { useTransactions } from "../contexts/TransactionContext";
-import { useBudgetAnnual } from "../contexts/BudgetAnnualContext";
-import { useCategories } from "../contexts/CategoryContext";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 export default function OnboardingGuard({ children }) {
   const location = useLocation();
 
-  const { accounts = [] } = useAccounts();
-  const { cards = [] } = useCards();
-  const { transactions = [] } = useTransactions();
-  const { items = [] } = useBudgetAnnual();
-  const { categories = [] } = useCategories();
+  const { loading, needsWelcome } = useOnboarding();
+
+  if (loading) return <div role="status" className="p-6 text-center">Carregando seus dados…</div>;
 
   const allowedEmptyRoutes = [
     "/onboarding",
@@ -21,19 +15,8 @@ export default function OnboardingGuard({ children }) {
     "/cards",
   ];
 
-  const hasAnyData =
-    accounts.length > 0 ||
-    cards.length > 0 ||
-    transactions.length > 0 ||
-    items.length > 0 ||
-    categories.length > 0;
-
-  const onboardingSkipped =
-    localStorage.getItem("nivo-onboarding-skipped") === "true";
-
   if (
-    !hasAnyData &&
-    !onboardingSkipped &&
+    needsWelcome &&
     !allowedEmptyRoutes.includes(location.pathname)
   ) {
     return <Navigate to="/onboarding" replace />;

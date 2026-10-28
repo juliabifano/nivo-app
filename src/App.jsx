@@ -6,24 +6,35 @@ import { CardProvider } from "./contexts/CardContext";
 import { BudgetAnnualProvider } from "./contexts/BudgetAnnualContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { PaymentScheduleProvider } from "./contexts/PaymentScheduleContext";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 
 export default function App() {
   return (
     <AuthProvider>
-      <CategoryProvider>
-        <TransactionProvider>
-          <CardProvider>
-            <BudgetAnnualProvider>
-              <AccountProvider>
-                <PaymentScheduleProvider>
-                  <AppRoutes />
-                </PaymentScheduleProvider>
-              </AccountProvider>
-            </BudgetAnnualProvider>
-          </CardProvider>
-        </TransactionProvider>
-      </CategoryProvider>
+      <UserDataProviders />
     </AuthProvider>
+  );
+}
+
+function UserDataProviders() {
+  const { user } = useAuth();
+
+  return (
+    <CategoryProvider key={user?.id ?? "signed-out"}>
+      <TransactionProvider>
+        <CardProvider>
+          <BudgetAnnualProvider>
+            <AccountProvider>
+              <PaymentScheduleProvider>
+                <OnboardingProvider>
+                  <AppRoutes />
+                </OnboardingProvider>
+              </PaymentScheduleProvider>
+            </AccountProvider>
+          </BudgetAnnualProvider>
+        </CardProvider>
+      </TransactionProvider>
+    </CategoryProvider>
   );
 }

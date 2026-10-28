@@ -1,16 +1,25 @@
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { motion as Motion } from "framer-motion";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import AnimatedLogo from "../components/brand/AnimatedLogo";
 import { useTheme } from "../theme/useTheme";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { theme, themeName } = useTheme();
+  const { loading, finished, active, steps: completedSteps, saving, saveStatus } = useOnboarding();
+
+  if (loading) return <div role="status" className="p-6 text-center">Carregando seus dados…</div>;
+  if (finished) return <Navigate to="/dashboard" replace />;
+  if (active) {
+    const nextStep = Object.keys(completedSteps).find((path) => !completedSteps[path]);
+    return <Navigate to={nextStep ?? "/dashboard"} replace />;
+  }
 
   const steps = [
     "Criar sua primeira conta",
-    "Adicionar um cartão",
     "Organizar categorias",
+    "Adicionar um cartão",
     "Registrar seu primeiro lançamento",
   ];
 
@@ -24,7 +33,7 @@ export default function Onboarding() {
       `}
     >
       {/* glow */}
-      <motion.div
+      <Motion.div
         animate={{
           opacity: [0.25, 0.55, 0.25],
           scale: [1, 1.08, 1],
@@ -44,7 +53,7 @@ export default function Onboarding() {
         "
       />
 
-      <motion.div
+      <Motion.div
         initial={{
           opacity: 0,
           y: 20,
@@ -90,7 +99,7 @@ export default function Onboarding() {
 
         <div className="mt-10 space-y-4">
           {steps.map((step, index) => (
-            <motion.div
+            <Motion.div
               key={step}
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
@@ -119,17 +128,16 @@ export default function Onboarding() {
               </div>
 
               <p className="text-lg font-medium">{step}</p>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 
-        <motion.button
+        <Motion.button
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => {
-            localStorage.setItem("nivo-onboarding-active", "true");
-            localStorage.removeItem("nivo-onboarding-skipped");
-            navigate("/accounts");
+          disabled={saving}
+          onClick={async () => {
+            if (await saveStatus("active")) navigate("/accounts");
           }}
           className="
         mt-10 w-full h-14 rounded-3xl
@@ -140,8 +148,8 @@ export default function Onboarding() {
     "
         >
           Criar primeira conta
-        </motion.button>
-      </motion.div>
+        </Motion.button>
+      </Motion.div>
     </div>
   );
 }

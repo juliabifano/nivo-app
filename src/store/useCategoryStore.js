@@ -12,6 +12,7 @@ export function useCategoryStore() {
   const { user } = useAuth();
 
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // -----------------------------
   // LOAD
@@ -23,6 +24,7 @@ export function useCategoryStore() {
       const data = await getCategories(user.id);
 
       setCategories(data || []);
+      setLoading(false);
     }
 
     load();
@@ -81,6 +83,7 @@ export function useCategoryStore() {
   }
 
   return {
+    loading: !!user && loading,
     categories,
     add,
     remove,

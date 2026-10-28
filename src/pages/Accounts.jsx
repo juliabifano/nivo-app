@@ -12,6 +12,7 @@ import BottomSheet from "../components/ui/BottomSheet";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useTheme } from "../theme/useTheme";
 import OnboardingProgress from "../components/onboarding/OnboardingProgress";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 export default function Accounts() {
   const { accounts, remove } = useAccounts();
@@ -40,8 +41,7 @@ export default function Accounts() {
     }
   };
 
-  const onboardingActive =
-    localStorage.getItem("nivo-onboarding-active") === "true";
+  const { active: onboardingActive } = useOnboarding();
 
   return (
     <div

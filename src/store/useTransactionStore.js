@@ -12,6 +12,7 @@ export function useTransactionStore() {
   const { user } = useAuth();
 
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // -----------------------------
   // LOAD
@@ -23,6 +24,7 @@ export function useTransactionStore() {
       const data = await getTransactions(user.id);
 
       setTransactions(data || []);
+      setLoading(false);
     }
 
     load();
@@ -92,6 +94,7 @@ export function useTransactionStore() {
   }
 
   return {
+    loading: !!user && loading,
     transactions,
     add,
     update,
