@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import OnboardingProgress from "../components/onboarding/OnboardingProgress";
 import { useOnboarding } from "../contexts/OnboardingContext";
@@ -16,6 +16,7 @@ import { useCards } from "../contexts/CardContext";
 import { useAccounts } from "../contexts/AccountContext";
 import DatePicker from "../components/DatePicker";
 import { useTheme } from "../theme/useTheme";
+import { getBudgetPaymentId, saveTransactionEdit } from "../core/transactions/budgetOccurrence";
 import {
   filterTransactions,
   parseLocalDate,
@@ -76,6 +77,7 @@ export default function Transactions() {
     })
     .map((item) => ({
       id: `budget-${item.id}-${currentMonth}-${currentYear}`,
+      schedulePaymentId: getBudgetPaymentId(item.id, currentMonth, currentYear),
       descricao: item.descricao,
       valor: Number(item.valorMensal || 0),
       tipo: item.tipo,
@@ -235,6 +237,14 @@ export default function Transactions() {
     setShowMobileForm(true);
   };
 
+  const handleUpdate = (id, changes) => saveTransactionEdit({
+    transaction: editingTransaction || allTransactions.find((item) => item.id === id),
+    changes,
+    transactions,
+    add,
+    update,
+  });
+
   const { active: onboardingActive } = useOnboarding();
 
   return (
@@ -313,13 +323,13 @@ export default function Transactions() {
           >
             <span>Filtros avançados</span>
 
-            <motion.span
+            <Motion.span
               animate={{ rotate: showFilters ? 180 : 0 }}
               transition={{ duration: 0.2 }}
               className="text-xs"
             >
               ▼
-            </motion.span>
+            </Motion.span>
           </button>
 
           {activeFilters.length > 0 && (
@@ -567,7 +577,7 @@ export default function Transactions() {
                 {Object.entries(grouped)
                   .sort((a, b) => new Date(a[0]) - new Date(b[0]))
                   .map(([date, items]) => (
-                    <motion.div
+                    <Motion.div
                       key={date}
                       layout
                       initial={{ opacity: 0, y: 16 }}
@@ -591,7 +601,7 @@ export default function Transactions() {
                             : setEditingTransaction
                         }
                       />
-                    </motion.div>
+                    </Motion.div>
                   ))}
               </div>
             </AnimatePresence>
@@ -631,7 +641,7 @@ export default function Transactions() {
       <div className="hidden lg:block">
         <RightSidebarTransactions
           onAdd={add}
-          onUpdate={update}
+          onUpdate={handleUpdate}
           editingTransaction={editingTransaction}
           setEditingTransaction={setEditingTransaction}
         />
@@ -662,7 +672,7 @@ export default function Transactions() {
       >
         <RightSidebarTransactions
           onAdd={add}
-          onUpdate={update}
+          onUpdate={handleUpdate}
           editingTransaction={editingTransaction}
           setEditingTransaction={setEditingTransaction}
           isMobile

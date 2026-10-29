@@ -56,6 +56,7 @@ export function generateInvoice({
     anos.forEach((anoBase) => {
       months.forEach((m, index) => {
         if (!item.meses?.includes(m)) return;
+        if (transactions.some((t) => t.schedulePaymentId === `orcamento-${item.id}-${m}-${anoBase}`)) return;
 
         budgetAsTransactions.push({
           id: `budget-${item.id}-${m}-${anoBase}`,

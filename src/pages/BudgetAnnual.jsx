@@ -29,6 +29,8 @@ export default function BudgetAnnual() {
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [chartTab, setChartTab] = useState("receitas");
   const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const [form, setForm] = useState({
     descricao: "",
@@ -71,29 +73,39 @@ export default function BudgetAnnual() {
   const budget = getAnnualBudgetSnapshot(items, categories);
   const { receitas, despesas, receitasData, despesasData } = budget;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
+    if (saving) return;
     if (!form.descricao || !form.valorMensal) return;
 
-    if (editingId) {
-      update(editingId, form);
-      setEditingId(null);
-    } else {
-      add(form);
+    setSaving(true);
+    setSaveError("");
+    try {
+      if (editingId) {
+        await update(editingId, form);
+        setEditingId(null);
+      } else {
+        const saved = await add(form);
+        if (!saved) throw new Error("Não foi possível salvar o orçamento.");
+      }
+
+      setForm({
+        descricao: "",
+        categoriaId: "",
+        valorMensal: "",
+        tipo: "despesa",
+        meses: [],
+        diaVencimento: "",
+        formaPagamento: "pix",
+        accountId: "",
+        cartaoId: "",
+      });
+
+      setShowMobileForm(false);
+    } catch {
+      setSaveError("Não foi possível salvar. Confira os campos e tente novamente.");
+    } finally {
+      setSaving(false);
     }
-
-    setForm({
-      descricao: "",
-      categoriaId: "",
-      valorMensal: "",
-      tipo: "despesa",
-      meses: [],
-      diaVencimento: "",
-      formaPagamento: "pix",
-      accountId: "",
-      cartaoId: "",
-    });
-
-    setShowMobileForm(false);
   };
 
   const handleDelete = (id) => {
@@ -558,6 +570,8 @@ export default function BudgetAnnual() {
           form={form}
           setForm={setForm}
           handleAdd={handleAdd}
+          saving={saving}
+          saveError={saveError}
           months={months}
           toggleMonth={toggleMonth}
           editingId={editingId}
@@ -590,6 +604,8 @@ export default function BudgetAnnual() {
           form={form}
           setForm={setForm}
           handleAdd={handleAdd}
+          saving={saving}
+          saveError={saveError}
           months={months}
           toggleMonth={toggleMonth}
           editingId={editingId}

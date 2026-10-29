@@ -1,5 +1,6 @@
 import { generateInvoice } from "../../utils/invoices.js";
 import { isSchedulePayment } from "../transactions/schedulePayment.js";
+import { getBudgetOccurrence } from "../transactions/budgetOccurrence.js";
 
 const months = {
   jan: 0,
@@ -46,22 +47,25 @@ export function getPaymentSchedule({
   items.forEach((item) => {
     if (!item.meses?.includes(month)) return;
 
-    const date = new Date(year, months[month], item.diaVencimento || 1);
+    const occurrence = getBudgetOccurrence(item, transactions, month, year);
+    const date = occurrence?.data
+      ? new Date(`${occurrence.data}T00:00:00`)
+      : new Date(year, months[month], item.diaVencimento || 1);
     const paymentId = `orcamento-${item.id}-${month}-${year}`;
     const isPaid = transactions.some((transaction) => isSchedulePayment(transaction, paymentId));
 
     schedule.push({
       paymentId,
       sourceId: item.id,
-      descricao: item.descricao,
-      valor: Number(item.valorMensal || 0),
-      tipo: item.tipo || "despesa",
+      descricao: occurrence?.descricao ?? item.descricao,
+      valor: Number(occurrence?.valor ?? item.valorMensal ?? 0),
+      tipo: occurrence?.tipo || item.tipo || "despesa",
       origem: "orcamento",
       data: date,
-      categoriaId: item.categoriaId,
-      accountId: item.accountId || "",
-      formaPagamento: item.formaPagamento || "pix",
-      cartaoId: item.cartaoId || null,
+      categoriaId: occurrence ? occurrence.categoriaId : item.categoriaId,
+      accountId: (occurrence ? occurrence.accountId : item.accountId) || "",
+      formaPagamento: occurrence?.formaPagamento || item.formaPagamento || "pix",
+      cartaoId: (occurrence ? occurrence.cartaoId : item.cartaoId) || null,
       status: getStatus(date, isPaid),
     });
   });

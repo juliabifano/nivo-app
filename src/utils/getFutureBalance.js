@@ -7,6 +7,7 @@ export function getFutureBalance({
 
   const year = today.getFullYear();
   const month = today.getMonth();
+  const monthKey = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][month];
 
   const startDate = new Date(year, month, 1);
   const endDate = new Date(year, month + 1, 0);
@@ -18,7 +19,7 @@ export function getFutureBalance({
   transactions.forEach((t) => {
     if (!t.data) return;
 
-    const date = new Date(t.data);
+    const date = new Date(`${t.data}T00:00:00`);
     if (date.getFullYear() !== year || date.getMonth() !== month) return;
 
     const day = date.getDate();
@@ -30,6 +31,8 @@ export function getFutureBalance({
   });
 
   budgetItems.forEach((item) => {
+    if (!item.meses?.includes(monthKey)) return;
+    if (transactions.some((t) => t.schedulePaymentId === `orcamento-${item.id}-${monthKey}-${year}`)) return;
     if (!item.diaVencimento) return;
 
     const day = Number(item.diaVencimento);

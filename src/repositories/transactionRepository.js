@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { updateTransactionRecord } from "./transactionUpdate.js";
 
 function normalizeTransaction(transaction) {
   return {
@@ -78,6 +79,11 @@ export async function createTransaction(transaction) {
     return null;
   }
 
+  return normalizeTransaction(data);
+}
+
+export async function updateTransaction(id, transaction, userId) {
+  const data = await updateTransactionRecord(supabase, id, transaction, userId);
   return normalizeTransaction(data);
 }
 

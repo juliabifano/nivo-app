@@ -1,5 +1,5 @@
 export function isSchedulePayment(transaction, paymentId) {
-  return transaction.schedulePaymentId === paymentId || transaction.invoicePaymentId === paymentId;
+  return !transaction.isPreview && (transaction.schedulePaymentId === paymentId || transaction.invoicePaymentId === paymentId);
 }
 
 export function createSchedulePaymentTransaction(item) {
@@ -28,14 +28,18 @@ export function createSchedulePaymentController() {
 
   return {
     isPending: (paymentId) => pending.has(paymentId),
-    async toggle({ item, transactions, add, removePayment }) {
+    async toggle({ item, transactions, add, update, removePayment }) {
       if (pending.has(item.paymentId)) return;
       pending.add(item.paymentId);
       try {
         if (item.status === "pago") {
           await removePayment(item.paymentId);
         } else if (!transactions.some((transaction) => isSchedulePayment(transaction, item.paymentId))) {
-          const saved = await add(createSchedulePaymentTransaction(item));
+          const preview = transactions.find((transaction) => transaction.isPreview && transaction.schedulePaymentId === item.paymentId);
+          const payload = createSchedulePaymentTransaction(item);
+          const saved = preview
+            ? await update(preview.id, { ...payload, isPreview: false })
+            : await add(payload);
           if (!saved) throw new Error("Não foi possível registrar o pagamento.");
         }
       } finally {

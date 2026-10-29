@@ -12,13 +12,14 @@ export default function RightSidebar({
   editingId,
   formatCurrency,
   isMobile = false,
-  setShowMobileForm,
+  saving = false,
+  saveError = "",
 }) {
-  if (!form) return null;
-
   const { accounts } = useAccounts();
   const { cards } = useCards();
   const { theme, themeName } = useTheme();
+
+  if (!form) return null;
 
   const valor = Number(form.valorMensal) || 0;
   const meses = form.meses?.length || 0;
@@ -275,9 +276,12 @@ export default function RightSidebar({
         Total: {formatCurrency(valor * meses)}
       </p>
 
+      {saveError && <p role="alert" className={`text-sm ${theme.danger}`}>{saveError}</p>}
       <button
         type="button"
         onClick={handleAdd}
+        disabled={saving}
+        aria-busy={saving}
         className={
           isMobile
             ? `
@@ -297,7 +301,7 @@ export default function RightSidebar({
             `
         }
       >
-        {editingId ? "Atualizar" : "Adicionar"}
+        {saving ? "Salvando..." : editingId ? "Atualizar" : "Adicionar"}
       </button>
     </div>
   );

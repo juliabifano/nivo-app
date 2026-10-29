@@ -61,7 +61,10 @@ export function getDashboardSnapshot({
       );
     });
 
-    return !alreadyRealized;
+    const hasOccurrence = transactions.some((t) =>
+      t.schedulePaymentId === `orcamento-${budgetItem.id}-${currentMonth}-${new Date().getFullYear()}`,
+    );
+    return !alreadyRealized && !hasOccurrence;
   });
 
   const dashboardItems = [...realizedItems, ...plannedItems];
@@ -99,7 +102,10 @@ export function getDashboardSnapshot({
         );
       });
 
-      return !alreadyRealized;
+      const hasOccurrence = transactions.some((t) =>
+        t.schedulePaymentId === `orcamento-${budgetItem.id}-${mes}-${new Date().getFullYear()}`,
+      );
+      return !alreadyRealized && !hasOccurrence;
     });
 
     const monthItems = [...transactionMonth, ...plannedMonth];

@@ -2,7 +2,7 @@ export function getAccountBalance(account, transactions = []) {
   const saldoInicial = Number(account.saldoInicial || 0);
 
   const movimentacoes = transactions.filter(
-    (t) => String(t.accountId) === String(account.id),
+    (t) => !t.isPreview && String(t.accountId) === String(account.id),
   );
 
   return movimentacoes.reduce((saldo, t) => {

@@ -7,16 +7,16 @@ export function createTransaction(raw) {
 
     tipo: raw.tipo || "despesa",
 
-    categoriaId: raw.categoriaId ?? null,
+    categoriaId: raw.categoriaId || null,
 
     data: raw.data || new Date().toISOString().split("T")[0],
 
     formaPagamento: raw.formaPagamento || "pix",
-    cartaoId: raw.cartaoId ?? null,
+    cartaoId: raw.cartaoId || null,
     parcelas: Number(raw.parcelas || 1),
 
-    contaId: raw.contaId ?? null,
-    accountId: raw.accountId ?? null,
+    contaId: raw.contaId || null,
+    accountId: raw.accountId || null,
 
     invoicePaymentId: raw.invoicePaymentId ?? null,
     cardInvoiceId: raw.cardInvoiceId ?? null,

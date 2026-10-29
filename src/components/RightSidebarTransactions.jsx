@@ -4,6 +4,24 @@ import CategoryPicker from "../components/CategoryPicker";
 import { useCards } from "../contexts/CardContext";
 import { useAccounts } from "../contexts/AccountContext";
 import { useTheme } from "../theme/useTheme";
+import { getTransactionSaveError } from "../repositories/transactionUpdate.js";
+
+const getToday = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+};
+
+const createEmptyForm = () => ({
+  descricao: "",
+  valor: "",
+  tipo: "despesa",
+  data: getToday(),
+  categoriaId: "",
+  formaPagamento: "pix",
+  cartaoId: "",
+  parcelas: "",
+  accountId: "",
+});
 
 export default function RightSidebarTransactions({
   onAdd,
@@ -16,25 +34,13 @@ export default function RightSidebarTransactions({
   const { cards } = useCards();
   const { accounts } = useAccounts();
   const { theme, themeName } = useTheme();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  const getToday = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
+  const [form, setForm] = useState(createEmptyForm);
 
-  const [form, setForm] = useState({
-    descricao: "",
-    valor: "",
-    tipo: "despesa",
-    data: getToday(),
-    categoriaId: "",
-    formaPagamento: "pix",
-    cartaoId: "",
-    parcelas: "",
-    accountId: "",
-  });
-
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (saving) return;
     if (!form.descricao || !form.valor) return;
 
     const dataToSave = {
@@ -44,31 +50,30 @@ export default function RightSidebarTransactions({
         form.formaPagamento === "credito" ? Number(form.parcelas || 1) : "",
     };
 
-    if (editingTransaction) {
-      onUpdate(editingTransaction.id, dataToSave);
-      setEditingTransaction(null);
-    } else {
-      onAdd(dataToSave);
-    }
+    setSaving(true);
+    setSaveError("");
+    try {
+      if (editingTransaction) {
+        await onUpdate(editingTransaction.id, dataToSave);
+        setEditingTransaction(null);
+      } else {
+        const saved = await onAdd(dataToSave);
+        if (!saved) throw new Error("Não foi possível salvar o lançamento.");
+      }
 
-    resetForm();
-    if (isMobile) {
-      setShowMobileForm(false);
+      resetForm();
+      if (isMobile) {
+        setShowMobileForm(false);
+      }
+    } catch (error) {
+      setSaveError(getTransactionSaveError(error, "Não foi possível salvar. Confira os campos e tente novamente."));
+    } finally {
+      setSaving(false);
     }
   }
 
   function resetForm() {
-    setForm({
-      descricao: "",
-      valor: "",
-      tipo: "despesa",
-      data: getToday(),
-      categoriaId: "",
-      formaPagamento: "pix",
-      cartaoId: "",
-      parcelas: "",
-      accountId: "",
-    });
+    setForm(createEmptyForm());
   }
 
   useEffect(() => {
@@ -85,7 +90,7 @@ export default function RightSidebarTransactions({
         accountId: editingTransaction.accountId || "",
       });
     } else {
-      resetForm();
+      setForm(createEmptyForm());
     }
   }, [editingTransaction]);
 
@@ -213,11 +218,11 @@ export default function RightSidebarTransactions({
           setForm({
             ...form,
             formaPagamento,
-            cartaoId: ["credito", "debito", "vale"].includes(formaPagamento)
+            cartaoId: ["credito", "debito", "debito_cartao", "vale"].includes(formaPagamento)
               ? form.cartaoId
               : "",
             parcelas: formaPagamento === "credito" ? form.parcelas : "",
-            accountId: ["pix", "debito", "dinheiro"].includes(formaPagamento)
+            accountId: ["pix", "debito", "debito_conta", "debito_cartao", "dinheiro"].includes(formaPagamento)
               ? form.accountId
               : "",
           });
@@ -228,6 +233,12 @@ export default function RightSidebarTransactions({
         </option>
         <option className={optionClass} value="debito">
           Débito
+        </option>
+        <option className={optionClass} value="debito_conta">
+          Débito em conta
+        </option>
+        <option className={optionClass} value="debito_cartao">
+          Débito no cartão
         </option>
         <option className={optionClass} value="credito">
           Crédito
@@ -240,7 +251,7 @@ export default function RightSidebarTransactions({
         </option>
       </select>
 
-      {["credito", "debito", "vale"].includes(form.formaPagamento) && (
+      {["credito", "debito", "debito_cartao", "vale"].includes(form.formaPagamento) && (
         <select
           className={fieldClass}
           value={form.cartaoId}
@@ -254,7 +265,7 @@ export default function RightSidebarTransactions({
               ...form,
               cartaoId,
               accountId:
-                form.formaPagamento === "debito" && selectedCard?.accountId
+                ["debito", "debito_cartao"].includes(form.formaPagamento) && selectedCard?.accountId
                   ? selectedCard.accountId
                   : form.accountId,
             });
@@ -270,7 +281,7 @@ export default function RightSidebarTransactions({
                 return c.tipo === "credito" || c.tipo === "multiplo";
               }
 
-              if (form.formaPagamento === "debito") {
+              if (["debito", "debito_cartao"].includes(form.formaPagamento)) {
                 return c.tipo === "debito" || c.tipo === "multiplo";
               }
 
@@ -298,7 +309,7 @@ export default function RightSidebarTransactions({
         />
       )}
 
-      {["pix", "debito", "dinheiro"].includes(form.formaPagamento) && (
+      {["pix", "debito", "debito_conta", "debito_cartao", "dinheiro"].includes(form.formaPagamento) && (
         <select
           className={fieldClass}
           value={form.accountId}
@@ -317,8 +328,16 @@ export default function RightSidebarTransactions({
       )}
 
       {/* BOTÃO */}
+      {editingTransaction?.origem === "orcamento" && (
+        <p className={`text-xs ${theme.textSecondary}`}>
+          Esta alteração vale apenas para este lançamento do mês. O valor padrão do orçamento anual será mantido.
+        </p>
+      )}
+      {saveError && <p role="alert" className={`text-sm ${theme.danger}`}>{saveError}</p>}
       <button
         onClick={handleSubmit}
+        disabled={saving}
+        aria-busy={saving}
         className={
           isMobile
             ? `
@@ -340,7 +359,7 @@ export default function RightSidebarTransactions({
       `
         }
       >
-        {editingTransaction ? "Salvar" : "Adicionar"}
+        {saving ? "Salvando..." : editingTransaction ? "Salvar" : "Adicionar"}
       </button>
 
       {editingTransaction && (

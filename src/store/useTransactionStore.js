@@ -5,6 +5,7 @@ import {
   createTransaction as createTransactionRepo,
   deleteTransaction,
   deleteSchedulePaymentTransactions,
+  updateTransaction,
 } from "../repositories/transactionRepository";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -80,10 +81,13 @@ export function useTransactionStore() {
   // -----------------------------
   // UPDATE
   // -----------------------------
-  function update(id, data) {
-    setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...data } : t)),
-    );
+  async function update(id, data) {
+    if (!user) throw new Error("Entre na sua conta para editar um lançamento.");
+    const existing = transactions.find((transaction) => transaction.id === id);
+    if (!existing) throw new Error("Lançamento não encontrado. Atualize a página e tente novamente.");
+    const saved = await updateTransaction(id, createTransaction({ ...existing, ...data }), user.id);
+    setTransactions((prev) => prev.map((transaction) => transaction.id === id ? saved : transaction));
+    return saved;
   }
 
   // -----------------------------

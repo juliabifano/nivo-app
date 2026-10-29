@@ -80,11 +80,12 @@ export function useBudgetStore() {
   // UPDATE
   // -----------------------------
   async function update(id, data) {
-    const saved = await updateBudgetItem(id, data);
+    const saved = await updateBudgetItem(id, createBudgetItem(data));
 
-    if (!saved) return;
+    if (!saved) throw new Error("Não foi possível atualizar o orçamento.");
 
     setItems((prev) => prev.map((item) => (item.id === id ? saved : item)));
+    return saved;
   }
 
   // -----------------------------

@@ -12,10 +12,11 @@ import { useTheme } from "../theme/useTheme";
 import SectionHeader from "../components/ui/SectionHeader";
 import GlassTabs from "../components/ui/GlassTabs";
 import Chart from "react-apexcharts";
+import { getTransactionSaveError } from "../repositories/transactionUpdate.js";
 
 export default function Schedule() {
   const { items = [] } = useBudgetAnnual();
-  const { transactions = [], add, removePayment } = useTransactions();
+  const { transactions = [], add, update, removePayment } = useTransactions();
   const { cards = [] } = useCards();
   const { accounts = [] } = useAccounts();
   const { theme, themeName } = useTheme();
@@ -119,11 +120,12 @@ export default function Schedule() {
           item,
           transactions,
           add,
+          update,
           removePayment,
         });
-      } catch {
+      } catch (error) {
         setPaymentError(
-          "Não foi possível alterar a realização. Tente novamente.",
+          getTransactionSaveError(error, "Não foi possível alterar a realização. Tente novamente."),
         );
       } finally {
         setPendingIds((prev) => prev.filter((id) => id !== item.paymentId));
